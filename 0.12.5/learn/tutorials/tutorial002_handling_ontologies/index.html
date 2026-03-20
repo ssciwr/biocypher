@@ -11,10 +11,10 @@
         <link rel="canonical" href="https://biocypher.org/0.12.5/learn/tutorials/tutorial002_handling_ontologies/">
       
       
-        <link rel="prev" href="../tutorial_basics_neo4j_offline/tutorial_004_neo4j_offline/">
+        <link rel="prev" href="./">
       
       
-        <link rel="next" href="../tutorial003_adapters/">
+        <link rel="next" href="../agent_api_guide/">
       
       
       <link rel="icon" href="../../../assets/img/favicon_biocypher_32px.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>Handling Ontologies (Intermediate) - BioCypher</title>
+        <title>Handling complex graph operations (Advanced) - BioCypher</title>
       
     
     
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Handling Ontologies (Intermediate)
+              Handling complex graph operations (Advanced)
             
           </span>
         </div>
@@ -338,6 +338,25 @@
         </a>
       </li>
     
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../api/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API reference
+
+      </a>
+    </li>
   
 
       
@@ -805,67 +824,18 @@
   
   
   
-    
-    
-    
-    
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2_1" >
-        
-          
-          <label class="md-nav__link" for="__nav_4_2_1" id="__nav_4_2_1_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    Agent API track
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_2_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_2_1">
-            <span class="md-nav__icon md-icon"></span>
-            Agent API track
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
     <li class="md-nav__item">
-      <a href="../agent_api_guide/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Agent API (Beginner)
+    Overview
     
   </span>
   
 
       </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
     </li>
   
 
@@ -899,7 +869,7 @@
   
   
   <span class="md-ellipsis">
-    Full hands-on track
+    Python UI track
     
   </span>
   
@@ -910,32 +880,9 @@
         <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_2_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4_2_2">
             <span class="md-nav__icon md-icon"></span>
-            Full hands-on track
+            Python UI track
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial001_basics/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Basics (Beginner)
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
             
               
                 
@@ -949,7 +896,7 @@
   
   
   <span class="md-ellipsis">
-    Hands-on Protein Graphs with BioCypher and Neo4j (Intermediate)
+    Hands-on Protein Graphs with BioCypher and Neo4j (Beginner)
     
   </span>
   
@@ -981,7 +928,7 @@
   
   
   <span class="md-ellipsis">
-    Handling Ontologies (Intermediate)
+    Handling complex graph operations (Advanced)
     
   </span>
   
@@ -994,7 +941,7 @@
   
   
   <span class="md-ellipsis">
-    Handling Ontologies (Intermediate)
+    Handling complex graph operations (Advanced)
     
   </span>
   
@@ -1133,20 +1080,174 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../tutorial003_adapters/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Handling complex graph operations (Advanced)
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
   <span class="md-ellipsis">
-    Adapters (Intermediate)
+    Handling complex graph operations (Advanced)
     
   </span>
   
 
       </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#visualising-ontologies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visualising ontologies
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Visualising ontologies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#visualise-only-the-parts-of-the-ontology-used-in-the-knowledge-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visualise only the parts of the ontology used in the knowledge graph
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualise-the-full-ontology" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visualise the full ontology
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualise-complex-ontologies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visualise complex ontologies
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-ontologies-plain-biolink" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using ontologies: plain Biolink
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model extensions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model extensions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#explicit-inheritance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Explicit inheritance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implicit-inheritance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implicit inheritance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#synonyms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Synonyms
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hybridising-ontologies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hybridising ontologies
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1158,13 +1259,54 @@
   
   
   
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2_3" id="__nav_4_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    LLM-assisted UI track
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            LLM-assisted UI track
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
-      <a href="../pandas_tutorial/" class="md-nav__link">
+      <a href="../agent_api_guide/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Example Notebook: BioCypher and Pandas
+    Agent API (Beginner)
     
   </span>
   
@@ -1357,12 +1499,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../explanation/adapters/" class="md-nav__link">
+      <a href="../../explanation/basics-knowledge-graphs/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    About Adapters
+    Knowledge Graphs
     
   </span>
   
@@ -1385,7 +1527,53 @@
   
   
   <span class="md-ellipsis">
-    About Ontologies
+    Ontologies
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/knowledge-graph-biocypher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Knowledge Graphs in BioCypher
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/adapters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Adapters
     
   </span>
   
@@ -2341,6 +2529,28 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -2913,7 +3123,7 @@ as follows at BioCypher interface instantiation:</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../tutorial_basics_neo4j_offline/tutorial_004_neo4j_offline/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Hands-on Protein Graphs with BioCypher and Neo4j (Intermediate)">
+          <a href="./" class="md-footer__link md-footer__link--prev" aria-label="Previous: Handling complex graph operations (Advanced)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2923,20 +3133,20 @@ as follows at BioCypher interface instantiation:</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Hands-on Protein Graphs with BioCypher and Neo4j (Intermediate)
+                Handling complex graph operations (Advanced)
               </div>
             </div>
           </a>
         
         
           
-          <a href="../tutorial003_adapters/" class="md-footer__link md-footer__link--next" aria-label="Next: Adapters (Intermediate)">
+          <a href="../agent_api_guide/" class="md-footer__link md-footer__link--next" aria-label="Next: Agent API (Beginner)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Adapters (Intermediate)
+                Agent API (Beginner)
               </div>
             </div>
             <div class="md-footer__button md-icon">
