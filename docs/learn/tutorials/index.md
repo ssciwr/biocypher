@@ -1,5 +1,7 @@
 # Tutorials
 
+Looking for a complete list of tutorials organised by difficulty? See the [Tutorial Catalog](catalog.md).
+
 ## Python UI track
 
 Choose the Python UI track if you are comfortable with directly writing Python code.

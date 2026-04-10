@@ -1,3 +1,9 @@
+---
+tags:
+  - tutorial
+  - beginner
+---
+
 # BioCypher Agent API Guide
 
 **Level:** Beginner (Agent API track)  
@@ -483,17 +489,17 @@ new_kg.load("knowledge.json")
 
 ## Key Differences
 
-| Aspect | Original BioCypher | New Agent API |
-|--------|-------------------|---------------|
-| **Initialization** | Complex with many parameters | `create_workflow()` |
-| **Data Addition** | Tuple-based with dictionaries | Direct `**kwargs` |
-| **Backends** | Multiple (NetworkX, Pandas, Neo4j, CSV) | Single unified Graph |
-| **Schema** | Required YAML configuration | Optional |
-| **Dependencies** | NetworkX, Pandas, PyYAML, etc. | Pure Python (basic) |
-| **Serialization** | Format-specific writers | Built-in JSON |
-| **Query Interface** | Backend-specific APIs | Unified interface |
-| **Hypergraphs** | Not supported | Built-in support |
-| **Learning Curve** | Steep | Minimal |
+| Aspect              | Original BioCypher                      | New Agent API        |
+| ------------------- | --------------------------------------- | -------------------- |
+| **Initialization**  | Complex with many parameters            | `create_workflow()`  |
+| **Data Addition**   | Tuple-based with dictionaries           | Direct `**kwargs`    |
+| **Backends**        | Multiple (NetworkX, Pandas, Neo4j, CSV) | Single unified Graph |
+| **Schema**          | Required YAML configuration             | Optional             |
+| **Dependencies**    | NetworkX, Pandas, PyYAML, etc.          | Pure Python (basic)  |
+| **Serialization**   | Format-specific writers                 | Built-in JSON        |
+| **Query Interface** | Backend-specific APIs                   | Unified interface    |
+| **Hypergraphs**     | Not supported                           | Built-in support     |
+| **Learning Curve**  | Steep                                   | Minimal              |
 
 ## Use Cases
 

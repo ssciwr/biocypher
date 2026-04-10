@@ -4,6 +4,8 @@
 
 site_name: BioCypher
 site_url: https://biocypher.org # URL where the webpage will be hosted, by default it it localhost
+exclude_docs: |
+  hooks/
 
 #=======    Theme Settings   =====
 theme:
@@ -17,7 +19,6 @@ theme:
     - content.code.copy
     - content.action.edit
     - navigation.tabs
-    - navigation.instant
     - navigation.footer
 
   palette:
@@ -54,6 +55,7 @@ nav:
       - Overview: learn/index.md
       - Tutorials:
           - Overview: learn/tutorials/index.md
+          - Catalog by Level: learn/tutorials/catalog.md
           - Python UI track:
               - Hands-on Protein Graphs with BioCypher and Neo4j (Beginner): learn/tutorials/tutorial_basics_neo4j_offline/tutorial_004_neo4j_offline.md
               - Handling complex graph operations (Advanced): learn/tutorials/tutorial002_handling_ontologies.md
@@ -153,6 +155,8 @@ plugins:
   - mkdocs-jupyter
   - mike
   - tags
+hooks:
+  - docs/hooks/docs_hooks.py
 
 repo_url: https://github.com/biocypher/biocypher
 repo_name: biocypher/biocypher

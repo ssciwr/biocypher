@@ -1,7 +1,10 @@
 ---
 tags:
+  - tutorial
   - beginner
+
 ---
+
 # 🧑‍💻 Hands-on Building Graphs with BioCypher (offline mode) and Neo4j
 
 ## Overview
