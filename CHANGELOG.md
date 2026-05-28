@@ -1,5 +1,54 @@
 # Changelog
 
+## [0.14.1](https://github.com/biocypher/biocypher/compare/biocypher-v0.14.0...biocypher-v0.14.1) (2026-05-26)
+
+
+### Bug Fixes
+
+* **batch_writer:** stringify list elements before joining in _write_array_string ([#524](https://github.com/biocypher/biocypher/issues/524)) ([9f2b153](https://github.com/biocypher/biocypher/commit/9f2b1531133e3b7106fac4c1a6bfc7ca61f85c96))
+* **create:** replace elif with if for reserved keyword checks in BioCypherEdge ([#526](https://github.com/biocypher/biocypher/issues/526)) ([06f75c1](https://github.com/biocypher/biocypher/commit/06f75c1e7cc71f15f962e29285e6832a6cba8a71))
+* **get:** treat lifetime=0 as permanent cache (never re-download) ([#525](https://github.com/biocypher/biocypher/issues/525)) ([fc6b092](https://github.com/biocypher/biocypher/commit/fc6b092a4f3438ba8a3da2eec50f5153eb29c165))
+* **parse_label:** guard against IndexError when label has no compliant characters ([#529](https://github.com/biocypher/biocypher/issues/529)) ([a8a4f8e](https://github.com/biocypher/biocypher/commit/a8a4f8ef1d1815c2a023a617bed3a0e1cb0be51e))
+* **translate:** require 'version' and accept 'license' for edges in strict mode ([#527](https://github.com/biocypher/biocypher/issues/527)) ([e902ea3](https://github.com/biocypher/biocypher/commit/e902ea3a484a5ea799b5d3b203d33885e126425a))
+
+## [0.14.0](https://github.com/biocypher/biocypher/compare/biocypher-v0.13.6...biocypher-v0.14.0) (2026-05-21)
+
+
+### Features
+
+* **core:** allow head_ontology: null for headless builds ([#523](https://github.com/biocypher/biocypher/issues/523)) ([1bcda5d](https://github.com/biocypher/biocypher/commit/1bcda5dc5ba0ae837bf4448c8a8b7351326fd96e))
+* **mapping:** accept 'namespace' as alias for 'preferred_id'; deprecate 'preferred_id' in schema config ([#519](https://github.com/biocypher/biocypher/issues/519)) ([87806c1](https://github.com/biocypher/biocypher/commit/87806c182cab9eab4a943709d5a6f458d5344cd4))
+
+
+### Bug Fixes
+
+* **batch_writer:** prevent schema mutation in strict-mode edge writes; fix f-string in translate error ([#517](https://github.com/biocypher/biocypher/issues/517)) ([9cd7c64](https://github.com/biocypher/biocypher/commit/9cd7c64b83bc328f1a49d83c7008b9ecf75b9711))
+* **batch_writer:** write boolean properties as lowercase true/false for Neo4j ([#510](https://github.com/biocypher/biocypher/issues/510)) ([95e3021](https://github.com/biocypher/biocypher/commit/95e3021dcade2e2d605e4888501cd5cdd3abbf22))
+* **config:** properly merge all three config levels in read_config() ([#515](https://github.com/biocypher/biocypher/issues/515)) ([da251fd](https://github.com/biocypher/biocypher/commit/da251fdf2c5917ea40fab0391afda1ff666d0cba))
+* **core:** allow pandas and tabular as dbms aliases in offline mode ([#513](https://github.com/biocypher/biocypher/issues/513)) ([7e3ee26](https://github.com/biocypher/biocypher/commit/7e3ee269345ea4b6b7f5d2cbf00463a8bd006332))
+* **create:** skip .replace() for non-string items in list properties ([#518](https://github.com/biocypher/biocypher/issues/518)) ([49b5756](https://github.com/biocypher/biocypher/commit/49b5756f0729c3684f4191603524c9d5f86bc75c))
+* **mapping:** deprecate 'label_in_input' in favour of 'input_label' ([#521](https://github.com/biocypher/biocypher/issues/521)) ([26a1c1f](https://github.com/biocypher/biocypher/commit/26a1c1f3b3de648510067f2a2690aadbe42a3d41))
+
+## [0.13.6](https://github.com/biocypher/biocypher/compare/biocypher-v0.13.5...biocypher-v0.13.6) (2026-05-09)
+
+
+### Bug Fixes
+
+* **get:** preserve query params in cache filenames; hash full URL when too long ([#507](https://github.com/biocypher/biocypher/issues/507)) ([538b8b3](https://github.com/biocypher/biocypher/commit/538b8b328df0810a9d4f40a239c284ec5654e0e0))
+
+
+### Documentation
+
+* **create:** fix BioCypherEdge docstring inaccuracies ([#508](https://github.com/biocypher/biocypher/issues/508)) ([e23c68c](https://github.com/biocypher/biocypher/commit/e23c68c80b76eca1976288677c5bacdbaf7fb9ee)), closes [#391](https://github.com/biocypher/biocypher/issues/391)
+* document write_schema_info() workflow for BioChatter integration ([#499](https://github.com/biocypher/biocypher/issues/499)) ([9cb0042](https://github.com/biocypher/biocypher/commit/9cb004265a33100cd3909ada3c53208d7aac9dee))
+
+## [0.13.5](https://github.com/biocypher/biocypher/compare/biocypher-v0.13.4...biocypher-v0.13.5) (2026-05-07)
+
+
+### Bug Fixes
+
+* handle empty iterables in write_nodes/write_edges without crashing ([#504](https://github.com/biocypher/biocypher/issues/504)) ([3b30e7b](https://github.com/biocypher/biocypher/commit/3b30e7be0a101ad5d9b8d732c9cb399c4ea60034))
+
 ## [0.13.4](https://github.com/biocypher/biocypher/compare/biocypher-v0.13.3...biocypher-v0.13.4) (2026-03-30)
 
 
