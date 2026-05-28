@@ -1,3 +1,10 @@
+---
+tags:
+    - tutorial
+    - beginner
+    - legacy
+---
+
 # Tutorial - Adapters
 
 **Level:** Intermediate (Hands-on track)

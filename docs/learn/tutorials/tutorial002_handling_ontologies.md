@@ -1,3 +1,10 @@
+---
+tags:
+  - tutorial
+  - intermediate
+  #- legacy
+---
+
 # Tutorial - Handling Ontologies
 
 **Level:** Intermediate (Hands-on track)
