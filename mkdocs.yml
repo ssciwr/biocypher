@@ -63,6 +63,8 @@ nav:
           - LLM-assisted UI track:
               - Agent-supported hands-on Protein Graphs with BioCypher and Neo4j (Beginner): learn/tutorials/tutorial_basic_with_agents/tutorial_basic_with_agents.md
               - Agent API (Beginner): learn/tutorials/agent_api_guide.md
+          - OntoWeaver track:
+              - OntoWeaver Tutorial (Beginner): learn/tutorials/tutorial_ontoweaver/tutorial_ontoweaver.md
 
       - HowTo / FAQ:
           - Overview: learn/guides/index.md
@@ -180,4 +182,4 @@ extra:
 extra_css:
   - stylesheets/extra.css
 
-copyright: © Copyright 2021-2025, BioCypher developers.
+copyright: © Copyright 2021-2026, BioCypher developers.
