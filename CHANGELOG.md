@@ -1,5 +1,181 @@
 # Changelog
 
+## [0.15.1](https://github.com/biocypher/biocypher/compare/biocypher-v0.15.0...biocypher-v0.15.1) (2026-06-01)
+
+
+### Bug Fixes
+
+* **batch_writer:** infer typed array annotations for list properties not in schema ([#533](https://github.com/biocypher/biocypher/issues/533)) ([2cd4042](https://github.com/biocypher/biocypher/commit/2cd404241c102fecbe62d03d70d07514e4257c43))
+* **mapping:** correctly merge parent exclude_properties in vertical inheritance ([#542](https://github.com/biocypher/biocypher/issues/542)) ([4c78eff](https://github.com/biocypher/biocypher/commit/4c78effe5e758916fe94551296f1cc2796010e2e))
+* **sqlite:** add set -e to import script and skip test when sqlite3 CLI absent ([#541](https://github.com/biocypher/biocypher/issues/541)) ([4c09af3](https://github.com/biocypher/biocypher/commit/4c09af307486e05c0a157828d31ea308b0466446))
+
+## [0.15.0](https://github.com/biocypher/biocypher/compare/biocypher-v0.14.1...biocypher-v0.15.0) (2026-05-29)
+
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+fail_fast: false
+default_language_version:
+    python: python3
+default_stages:
+-   pre-commit
+-   pre-push
+minimum_pre_commit_version: 2.7.1
+repos:
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.2.0
+    hooks:
+    -   id: ruff
+        args:
+        - --select=E,F,I  # Only error, flake8, and isort rules
+        - --fix
+    -   id: ruff-format
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    -   id: check-docstring-first
+    -   id: end-of-file-fixer# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+fail_fast: false
+default_language_version:
+    python: python3
+default_stages:
+-   pre-commit
+-   pre-push
+minimum_pre_commit_version: 2.7.1
+repos:# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+fail_fast: false
+default_language_version:
+    python: python3
+default_stages:
+-   pre-commit
+-   pre-push
+minimum_pre_commit_version: 2.7.1
+repos:
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.2.0
+    hooks:
+    -   id: ruff
+        args:
+        - --select=E,F,I  # Only error, flake8, and isort rules
+        - --fix
+    -   id: ruff-format
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    -   id: check-docstring-first
+    -   id: end-of-file-fixer
+    -   id: check-added-large-files
+    -   id: mixed-line-ending
+    -   id: trailing-whitespace
+        exclude: ^.bumpversion.cfg$
+        exclude_types: [markdown]
+    -   id: check-merge-conflict
+    -   id: check-case-conflict
+    -   id: check-symlinks
+    -   id: check-yaml
+        args: [--unsafe]
+    -   id: check-ast
+    -   id: fix-encoding-pragma
+        args: [--remove] # for Python3 codebase, it's not necessary
+    -   id: requirements-txt-fixer
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.2.0
+    hooks:
+    -   id: ruff
+        args:
+        - --select=E,F,I  # Only error, flake8, and isort rules
+        - --fix
+    -   id: ruff-format
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    -   id: check-docstring-first
+    -   id: end-of-file-fixer
+    -   id: check-added-large-files
+    -   id: mixed-line-ending
+    -   id: trailing-whitespace
+        exclude: ^.bumpversion.cfg$
+        exclude_types: [markdown]
+    -   id: check-merge-conflict
+    -   id: check-case-conflict
+    -   id: check-symlinks
+    -   id: check-yaml
+        args: [--unsafe]
+    -   id: check-ast
+    -   id: fix-encoding-pragma
+        args: [--remove] # for Python3 codebase, it's not necessary
+    -   id: requirements-txt-fixer
+
+    -   id: check-added-large-files
+    -   id: mixed-line-ending
+    -   id: trailing-whitespace
+        exclude: ^.bumpversion.cfg$
+        exclude_types: [markdown]
+    -   id: check-merge-conflict
+    -   id: check-case-conflict
+    -   id: check-symlinks
+    -   id: check-yaml
+        args: [--unsafe]
+    -   id: check-ast# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+fail_fast: false
+default_language_version:
+    python: python3
+default_stages:
+-   pre-commit
+-   pre-push
+minimum_pre_commit_version: 2.7.1
+repos:
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.2.0
+    hooks:
+    -   id: ruff
+        args:
+        - --select=E,F,I  # Only error, flake8, and isort rules
+        - --fix
+    -   id: ruff-format
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    -   id: check-docstring-first
+    -   id: end-of-file-fixer
+    -   id: check-added-large-files
+    -   id: mixed-line-ending
+    -   id: trailing-whitespace
+        exclude: ^.bumpversion.cfg$
+        exclude_types: [markdown]
+    -   id: check-merge-conflict
+    -   id: check-case-conflict
+    -   id: check-symlinks
+    -   id: check-yaml
+        args: [--unsafe]
+    -   id: check-ast
+    -   id: fix-encoding-pragma
+        args: [--remove] # for Python3 codebase, it's not necessary
+    -   id: requirements-txt-fixer
+
+    -   id: fix-encoding-pragma
+        args: [--remove] # for Python3 codebase, it's not necessary
+    -   id: requirements-txt-fixer
+
+### Features
+
+* **batch_writer:** stream edge processing in offline mode to eliminate unbounded memory usage ([#539](https://github.com/biocypher/biocypher/issues/539)) ([206145b](https://github.com/biocypher/biocypher/commit/206145b7091a391c9ebaf4dd3d6749973729fe7d))
+
+
+### Bug Fixes
+
+* **core:** _add_edges called non-existent method and wrong driver method ([#538](https://github.com/biocypher/biocypher/issues/538)) ([c58c75b](https://github.com/biocypher/biocypher/commit/c58c75b11a6a04a541e3aba857f6378810b6decd))
+
+
+### Documentation
+
+* clarify Neo4j import file prefix ([#535](https://github.com/biocypher/biocypher/issues/535)) ([b2ec20f](https://github.com/biocypher/biocypher/commit/b2ec20f48f4ef3eb6bf4372c6f5edcba659014d9))
+* clarify Ruff development workflow ([#536](https://github.com/biocypher/biocypher/issues/536)) ([1c91dfc](https://github.com/biocypher/biocypher/commit/1c91dfc424d7df33df15a3ca92afb0401f13453b))
+* **config:** add merge_nodes example to tail_ontologies in biocypher_config.yaml ([#532](https://github.com/biocypher/biocypher/issues/532)) ([f761fdb](https://github.com/biocypher/biocypher/commit/f761fdbf6b98a5049000c1ea63e0fdee619df69d))
+
 ## [0.14.1](https://github.com/biocypher/biocypher/compare/biocypher-v0.14.0...biocypher-v0.14.1) (2026-05-26)
 
 
