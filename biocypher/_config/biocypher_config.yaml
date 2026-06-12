@@ -127,9 +127,6 @@ neo4j:
   # The shell with which to execute the import script file.
   shell: system  # Either 'system' (the system's shell) or the path to your shell of choice.
 
-  # The shell with which to execute the import script file.
-  shell: system  # Either 'system' (the system's shell) or the path to your shell of choice.
-
 postgresql:
   ### PostgreSQL configuration ###
   # PostgreSQL connection credentials
