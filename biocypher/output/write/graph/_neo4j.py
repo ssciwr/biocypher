@@ -44,7 +44,7 @@ class _Neo4jBatchWriter(_BatchWriter):
         if not self.file_format:
             writer_requested = kwargs.get("writer_requested")
             self.file_format = (
-                "parquet" if writer_requested is not None and  isinstance(self, writer_requested) else "csv"
+                "parquet" if writer_requested is not None and isinstance(self, writer_requested) else "csv"
             )
 
         if self.file_format not in ["csv", "parquet"]:

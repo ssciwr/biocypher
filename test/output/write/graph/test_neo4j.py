@@ -288,9 +288,7 @@ def test_property_quote_escaping(bw):
 
     data_file = os.path.join(
         bw.outdir,
-        "Protein-part000.csv"
-        if bw.file_format != "parquet"
-        else "Protein-part000.parquet",
+        "Protein-part000.csv" if bw.file_format != "parquet" else "Protein-part000.parquet",
     )
 
     if bw.file_format == "parquet":
@@ -473,12 +471,12 @@ def test_write_node_data_non_string_list_properties(bw):
     # Verify that the inferred types in node_property_dict use "int[]" / "float[]"
     # rather than the bare "list" that type(v).__name__ would previously return.
     prop_types = bw.node_property_dict.get("post translational interaction", {})
-    assert (
-        prop_types.get("scores") == "int[]"
-    ), f"Expected 'int[]' but got {prop_types.get('scores')!r}; list type inference is broken"
-    assert (
-        prop_types.get("weights") == "float[]"
-    ), f"Expected 'float[]' but got {prop_types.get('weights')!r}; list type inference is broken"
+    assert prop_types.get("scores") == "int[]", (
+        f"Expected 'int[]' but got {prop_types.get('scores')!r}; list type inference is broken"
+    )
+    assert prop_types.get("weights") == "float[]", (
+        f"Expected 'float[]' but got {prop_types.get('weights')!r}; list type inference is broken"
+    )
 
 
 @pytest.mark.parametrize("length", [4], scope="module")
@@ -1232,12 +1230,12 @@ def test_write_edge_data_non_string_list_properties(bw):
 
     # Type inference should work for both formats
     prop_types = bw.edge_property_dict.get("phosphorylation", {})
-    assert (
-        prop_types.get("sites") == "str[]"
-    ), f"Expected 'str[]' but got {prop_types.get('sites')!r}; list type inference is broken for edges"
-    assert (
-        prop_types.get("scores") == "float[]"
-    ), f"Expected 'float[]' but got {prop_types.get('scores')!r}; list type inference is broken for edges"
+    assert prop_types.get("sites") == "str[]", (
+        f"Expected 'str[]' but got {prop_types.get('sites')!r}; list type inference is broken for edges"
+    )
+    assert prop_types.get("scores") == "float[]", (
+        f"Expected 'float[]' but got {prop_types.get('scores')!r}; list type inference is broken for edges"
+    )
 
 
 @pytest.mark.parametrize("length", [8], scope="module")
