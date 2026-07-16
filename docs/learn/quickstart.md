@@ -210,7 +210,7 @@ bc = BioCypher()
 
 BioCypher's main functionality is writing the graph (nodes and edges) to a
 database or files for database import. We exemplarise this using the Neo4j
-output format, writing CSV files formatted for the Neo4j admin import. In this
+output format, writing Parquet files formatted for the Neo4j admin import. In this
 example, `node_generator()` and `edge_generator()` are the adapter functions
 that yield nodes and edges, respectively (see above).
 
