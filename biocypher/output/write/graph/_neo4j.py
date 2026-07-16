@@ -41,8 +41,11 @@ class _Neo4jBatchWriter(_BatchWriter):
         # Should read the configuration and setup import_call_bin_prefix.
         super().__init__(*args, **kwargs)
 
-        if isinstance(self, kwargs["writer_requested"]) and not self.file_format:
-            self.file_format = "parquet"
+        if not self.file_format:
+            writer_requested = kwargs.get("writer_requested")
+            self.file_format = (
+                "parquet" if writer_requested is not None and  isinstance(self, writer_requested) else "csv"
+            )
 
         if self.file_format not in ["csv", "parquet"]:
             msg = f"Unrecognised file format {self.file_format}. Supported formats are 'csv' and 'parquet'."
