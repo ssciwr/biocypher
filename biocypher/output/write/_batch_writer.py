@@ -829,7 +829,7 @@ class _BatchWriter(_Writer, ABC):
                         elif isinstance(p, list):
                             plist.append(self._write_array_string(map(str, p)))
                         else:
-                            plist.append(f"{self.quote}{p!s}{self.quote}")
+                            plist.append(self._quote_string(str(p)))
 
                     line.append(self.delim.join(plist))
                 line.append(labels)
@@ -1110,7 +1110,7 @@ class _BatchWriter(_Writer, ABC):
                 elif isinstance(p, list):
                     plist.append(self._write_array_string(map(str, p)))
                 else:
-                    plist.append(self.quote + str(p) + self.quote)
+                    plist.append(self._quote_string(str(p)))
 
             entries = [e.get_source_id()]
 
@@ -1136,7 +1136,7 @@ class _BatchWriter(_Writer, ABC):
                     self.translator.ontology.mapping.extended_schema.get(
                         schema_label,
                     ).get("use_id")
-                    == False  # noqa: E712 (seems to not work with 'not')
+                    == False
                 ):
                     skip_id = True
 
