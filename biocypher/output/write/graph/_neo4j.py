@@ -42,7 +42,7 @@ class _Neo4jBatchWriter(_BatchWriter):
         super().__init__(*args, **kwargs)
 
         if not self.file_format:
-            self.file_format = "csv"
+            self.file_format = "parquet"
 
         if self.file_format not in ["csv", "parquet"]:
             msg = f"Unrecognised file format {self.file_format}. Supported formats are 'csv' and 'parquet'."
@@ -56,7 +56,7 @@ class _Neo4jBatchWriter(_BatchWriter):
                 import pyarrow as pa  # noqa: F401, PLC0415
                 import pyarrow.parquet as pq  # noqa: F401, PLC0415
             except ImportError as exc:
-                msg = "PyArrow module not detected. Install it with 'uv add biocypher[bigdata]' or 'uv add pyarrow'."
+                msg = "PyArrow module not detected. Install it with 'uv add biocypher[neo4j]' or 'uv add pyarrow'."
                 logger.error(msg, exc_info=exc)
                 raise
 
