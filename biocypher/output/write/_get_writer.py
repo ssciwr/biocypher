@@ -132,5 +132,6 @@ def get_writer(
             file_format=dbms_config.get("file_format"),  # rdf, owl
             rdf_namespaces=dbms_config.get("rdf_namespaces"),  # rdf, owl
             edge_model=dbms_config.get("edge_model"),  # owl
+            writer_requested=writer,
         )
     return None
