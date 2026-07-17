@@ -126,6 +126,17 @@ series of Parquet files in a designated output folder (standard being
 format. BioCypher creates separate CSV header files and Parquet data files for
 all node and edge types to be represented in the graph.
 
+!!! note "Parquet is now the default"
+    The format change is transparent when using the generated
+    `neo4j-admin-import-call.sh` script to import into Neo4j. If another
+    downstream tool or workflow requires CSV data files, explicitly select CSV
+    in `biocypher_config.yaml`:
+
+    ```yaml
+    neo4j:
+      file_format: csv
+    ```
+
 Offline mode requires [PyArrow](https://arrow.apache.org/docs/python/) for the default Parquet output. It is
 included with the Neo4j optional dependency:
 
