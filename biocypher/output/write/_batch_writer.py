@@ -154,7 +154,6 @@ class _BatchWriter(_Writer, ABC):
         labels_order: str = "Ascending",
         node_labels_order: str = "Ascending",
         edge_labels_order: str = "Ascending",
-        writer_requested: type | None = None,
         **kwargs,
     ):
         """Write node and edge representations to disk.

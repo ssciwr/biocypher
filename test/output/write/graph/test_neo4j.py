@@ -829,7 +829,6 @@ def test_write_node_data_schema_change_between_writer_instances(bw, translator, 
         array_delimiter="|",
         quote="'",
         file_format=bw.file_format,
-        writer_requested=_Neo4jBatchWriter,
     )
     assert writer_2._write_node_data(
         [BioCypherNode("p2", "patient", properties={"name": "Bob", "diagnosis": "diabetes"})],

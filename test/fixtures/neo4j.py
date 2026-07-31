@@ -26,7 +26,6 @@ def bw(translator, deduplicator, tmp_path_session, file_format):
         array_delimiter="|",
         quote="'",
         file_format=file_format,
-        writer_requested=_Neo4jBatchWriter,
     )
 
     yield bw
@@ -47,7 +46,6 @@ def bw_csv(translator, deduplicator, tmp_path_session):
         array_delimiter="|",
         quote="'",
         file_format="csv",
-        writer_requested=_Neo4jBatchWriter,
     )
 
     yield bw
@@ -67,7 +65,6 @@ def bw_tab(translator, deduplicator, tmp_path_session, file_format):
         array_delimiter="|",
         quote="'",
         file_format=file_format,
-        writer_requested=_Neo4jBatchWriter,
     )
 
     yield bw_tab
@@ -89,7 +86,6 @@ def bw_strict(translator, deduplicator, tmp_path_session, file_format):
         quote="'",
         strict_mode=True,
         file_format=file_format,
-        writer_requested=_Neo4jBatchWriter,
     )
 
     yield bw
