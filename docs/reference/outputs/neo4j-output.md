@@ -124,7 +124,11 @@ with a running database, with the data representation being converted to a
 series of Parquet files in a designated output folder (standard being
 `biocypher-out/` and the current datetime). Parquet is the default offline
 format. BioCypher creates separate CSV header files and Parquet data files for
-all node and edge types to be represented in the graph.
+all node and edge types to be represented in the graph. A single type whose
+nodes carry varying property sets (for labels not fixed by the schema
+configuration) may be split into more than one header/part group, each named
+after the type with a numeric suffix (e.g. `ProteinGroup1`); see
+[Varying property sets](../../learn/tutorials/tutorial001_basics.md#varying-property-sets).
 
 !!! note "Parquet is now the default"
     The format change is transparent when using the generated

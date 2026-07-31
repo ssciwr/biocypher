@@ -155,7 +155,7 @@ class _Neo4jBatchWriter(_BatchWriter):
                 # Brackets need to be removed if the column is not a string
                 # of concatenated values but a native parquet array type.
                 # Possibly a Neo4j bug.
-                v = v_raw.removesuffix("[]") if self.file_format == "parquet" else v_raw
+                v = v_raw.removesuffix("[]") if self.file_format == "parquet" and isinstance(v_raw, str) else v_raw
 
                 if v in ["int", "long", "integer"]:
                     props_list.append(f"{k}:long")
@@ -237,7 +237,7 @@ class _Neo4jBatchWriter(_BatchWriter):
                 # Brackets need to be removed if the column is not a string
                 # of concatenated values but a native parquet array type.
                 # Possibly a Neo4j bug.
-                v = v_raw.removesuffix("[]") if self.file_format == "parquet" else v_raw
+                v = v_raw.removesuffix("[]") if self.file_format == "parquet" and isinstance(v_raw, str) else v_raw
 
                 if v in ["int", "long", "integer"]:
                     props_list.append(f"{k}:long")
@@ -478,6 +478,8 @@ class _Neo4jBatchWriter(_BatchWriter):
             import_call += "--skip-bad-relationships=true "
         if self.skip_duplicate_nodes:
             import_call += "--skip-duplicate-nodes=true "
+        if self.import_call_additional_options:
+            import_call += f"{self.import_call_additional_options} "
 
         # append node import calls
         for header_path, parts_path in self.import_call_nodes:
@@ -512,6 +514,7 @@ class _Neo4jBatchWriter(_BatchWriter):
         import_call.append(f"{wipe_cmd}true " if self.wipe else "")
         import_call.append("--skip-bad-relationships=true " if self.skip_bad_relationships else "")
         import_call.append("--skip-duplicate-nodes=true " if self.skip_duplicate_nodes else "")
+        import_call.append(f"{self.import_call_additional_options} " if self.import_call_additional_options else "")
         import_call.extend(
             f'--nodes="{header_path},{parts_path}" ' for header_path, parts_path in self.import_call_nodes
         )
