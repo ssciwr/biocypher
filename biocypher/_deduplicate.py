@@ -92,10 +92,11 @@ class Deduplicator:
         node = rel_as_node.get_node()
         # rel as node always has an id
         relationship_id = node.get_id()
-        relationship_type = node.get_label()
+        relationship_type = node.get_type()
+        relationship_fingerprint = f"{relationship_type}_{relationship_id}"
         self.seen_relationship_types.add(relationship_type)
 
-        if relationship_id in self.seen_relationship_fingerprints:
+        if relationship_fingerprint in self.seen_relationship_fingerprints:
             self.duplicate_relationship_ids.add(relationship_id)
             if relationship_type not in self.duplicate_relationship_types:
                 logger.warning(f"Duplicate edge type {relationship_type} found. ")
