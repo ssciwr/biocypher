@@ -1,6 +1,6 @@
 import pytest
 
-from biocypher._create import BioCypherEdge, BioCypherNode
+from biocypher._create import BioCypherEdge, BioCypherNode, BioCypherRelAsNode
 from biocypher._deduplicate import Deduplicator, DiskBasedDeduplicator
 from biocypher._deduplicate_disk_index import BloomAcceleratedDiskBackedIndex, _hash_id
 
@@ -111,6 +111,38 @@ def test_get_duplicate_edges(_get_edges, use_disk_index):
 
     assert "Is_Mutated_In" in types
     assert ("mrel2") in ids
+
+
+@pytest.mark.parametrize("use_disk_index", [False, True])
+def test_edges_are_namespaced_by_type(use_disk_index):
+    dedup = DiskBasedDeduplicator(batch_size=0) if use_disk_index else Deduplicator()
+    first = BioCypherEdge("source", "target", "FIRST_TYPE", relationship_id="shared-id")
+    second = BioCypherEdge("source", "target", "SECOND_TYPE", relationship_id="shared-id")
+
+    assert not dedup.edge_seen(first)
+    assert not dedup.edge_seen(second)
+    assert dedup.edge_seen(first)
+    assert dedup.get_duplicate_edges() == ({"FIRST_TYPE"}, {"shared-id"})
+
+
+@pytest.mark.parametrize("use_disk_index", [False, True])
+def test_relationships_as_nodes_are_namespaced_by_type(use_disk_index):
+    dedup = DiskBasedDeduplicator(batch_size=0) if use_disk_index else Deduplicator()
+
+    def relationship_as_node(relationship_type):
+        return BioCypherRelAsNode(
+            BioCypherNode("shared-id", relationship_type),
+            BioCypherEdge("source", "shared-id", "HAS_SOURCE"),
+            BioCypherEdge("shared-id", "target", "HAS_TARGET"),
+        )
+
+    first = relationship_as_node("FIRST_TYPE")
+    second = relationship_as_node("SECOND_TYPE")
+
+    assert not dedup.rel_as_node_seen(first)
+    assert not dedup.rel_as_node_seen(second)
+    assert dedup.rel_as_node_seen(first)
+    assert dedup.get_duplicate_edges() == ({"FIRST_TYPE"}, {"shared-id"})
 
 
 _SMALL = {

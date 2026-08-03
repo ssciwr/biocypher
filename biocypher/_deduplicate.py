@@ -103,7 +103,7 @@ class Deduplicator:
                 self.duplicate_relationship_types.add(relationship_type)
             return True
 
-        self.seen_relationship_fingerprints.add(relationship_id)
+        self.seen_relationship_fingerprints.add(relationship_fingerprint)
         return False
 
     def get_duplicate_nodes(self):
