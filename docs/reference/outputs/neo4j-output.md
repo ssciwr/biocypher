@@ -24,6 +24,11 @@ on your system.
     adapts its behavior accordingly (e.g., constraint syntax, database
     parameters).
 
+    The exception is the default Parquet output of offline mode, which
+    requires **Neo4j 5.26.28 or later**. The version is only known at import
+    time, not while BioCypher writes, so this cannot be detected for you; set
+    `file_format: csv` if you target an earlier version.
+
 !!! note "Installing Neo4j Python Driver (Optional)"
     The Neo4j Python driver is only needed for online mode. If you plan to use
     BioCypher with Neo4j in online mode, install it as an optional dependency:
@@ -131,10 +136,11 @@ after the type with a numeric suffix (e.g. `ProteinGroup1`); see
 [Varying property sets](../../learn/tutorials/tutorial001_basics.md#varying-property-sets).
 
 !!! note "Parquet is now the default"
-    The format change is transparent when using the generated
-    `neo4j-admin-import-call.sh` script to import into Neo4j. If another
-    downstream tool or workflow requires CSV data files, explicitly select CSV
-    in `biocypher_config.yaml`:
+    Importing Parquet requires **Neo4j 5.26.28 or later**. The generated
+    `neo4j-admin-import-call.sh` passes `--input-type=parquet`, which earlier
+    versions reject with `Unknown option: '--input-type=parquet'`. Select CSV
+    if you target an earlier Neo4j, or if a downstream tool or workflow needs
+    CSV data files:
 
     ```yaml
     neo4j:
