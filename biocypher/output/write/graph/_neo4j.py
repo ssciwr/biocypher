@@ -67,7 +67,8 @@ class _Neo4jBatchWriter(_BatchWriter):
 
             msg = (
                 "The default output format for Neo4j offline mode has been changed to Parquet. "
-                "Ensure your Neo4j instance supports Parquet input, or explicitly set `file_format` to `CSV` in your BioCypher config file."
+                "Ensure your Neo4j instance supports Parquet input, or explicitly set `file_format` to `CSV` in your "
+                "BioCypher config file."
             )
             logger.warning(msg)
 
