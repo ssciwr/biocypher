@@ -2319,6 +2319,17 @@ def _neo4j_image_present() -> bool:
     return bool(listed.stdout.strip())
 
 
+def _neo4j_image_version() -> tuple:
+    """Neo4j version parsed from the image tag, e.g. (5, 26, 28). Empty if the
+    tag does not carry one, which the checks below treat as "assume oldest".
+    """
+    tag = NEO4J_IMAGE.rpartition(":")[2].split("-")[0]
+    try:
+        return tuple(int(part) for part in tag.split("."))
+    except ValueError:
+        return ()
+
+
 @pytest.mark.skipif(
     not _neo4j_image_present(),
     reason=f"needs a local `{NEO4J_IMAGE}` image; run `docker pull {NEO4J_IMAGE}` to enable "
@@ -2330,7 +2341,15 @@ def test_generated_import_call_is_accepted_by_neo4j(bw):
     Unit tests assert the flags we expect to emit; only this one catches flags
     Neo4j expects and we do not. The Parquet default shipped broken for two
     months because `--input-type` was missing and nothing executed the script.
+
+    Mirrors the version branching of `_construct_import_call_bash`, so the
+    Neo4j 4 and Neo4j 5 forms of the call are each exercised by the matching
+    image.
     """
+    version = _neo4j_image_version()
+    if bw.file_format == "parquet" and version < (5, 26):
+        pytest.skip(f"{NEO4J_IMAGE} predates Parquet import support (Neo4j 5.26)")
+
     # the container has neo4j-admin on PATH and the output mounted at /import;
     # both prefixes must be set before the headers record their paths
     bw.import_call_bin_prefix = ""
@@ -2356,7 +2375,10 @@ def test_generated_import_call_is_accepted_by_neo4j(bw):
     bw._write_node_headers()
     bw._write_edge_headers()
 
-    call = bw._get_import_call("database import full", "", "--overwrite-destination=")
+    if version < (5,):
+        call = bw._get_import_call("import", "--database=", "--force=")
+    else:
+        call = bw._get_import_call("database import full", "", "--overwrite-destination=")
 
     result = subprocess.run(
         ["docker", "run", "--rm", "-v", f"{bw.outdir}:/import:ro", "--entrypoint", "bash", NEO4J_IMAGE, "-c", call],

@@ -44,17 +44,25 @@ runs:
     #----------------------------------------------
     #     run tests and code quality checks
     #----------------------------------------------
+    # BIOCYPHER_TEST_NEO4J_IMAGE points the offline import test at the same
+    # image the steps above already pulled, so it costs no extra download. The
+    # test skips itself where the image is absent (Windows, macOS) or too old
+    # for the format under test.
     - name: Run Tests (Windows)
       run: |
         uv run pytest --version
         uv run pytest --password=your_password_here
       shell: bash
+      env:
+        BIOCYPHER_TEST_NEO4J_IMAGE: neo4j:${{ inputs.NEO4J_VERSION }}
       if: runner.os == 'Windows'
     - name: Run tests (Linux and MacOS)
       run: |
         uv run pytest --version
         uv run pytest --password=your_password_here
       shell: bash
+      env:
+        BIOCYPHER_TEST_NEO4J_IMAGE: neo4j:${{ inputs.NEO4J_VERSION }}
       if: runner.os != 'Windows'
     - name: Check code quality
       uses: pre-commit/action@v3.0.0
