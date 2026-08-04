@@ -2354,9 +2354,12 @@ def test_generated_import_call_is_accepted_by_neo4j(bw):
     Neo4j 4 and Neo4j 5 forms of the call are each exercised by the matching
     image.
     """
+    # Measured floor, not the one in the release notes: 5.26.25 and earlier
+    # accept `--input-type=parquet` but then read the CSV header file as
+    # Parquet. Calendar versions all sort above this and are all fine.
     version = _neo4j_image_version()
-    if bw.file_format == "parquet" and version < (5, 26):
-        pytest.skip(f"{NEO4J_IMAGE} predates Parquet import support (Neo4j 5.26)")
+    if bw.file_format == "parquet" and version < (5, 26, 26):
+        pytest.skip(f"{NEO4J_IMAGE} predates working Parquet import (Neo4j 5.26.26 LTS / any calendar release)")
 
     # the container has neo4j-admin on PATH and the output mounted at /import;
     # both prefixes must be set before the headers record their paths
