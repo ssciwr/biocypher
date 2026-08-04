@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import subprocess
 import sys
 
 import pytest
@@ -2297,3 +2298,72 @@ def test_import_call_input_type_flag(bw):
         assert "parquet" in call
     else:
         assert "--input-type" not in call
+
+
+NEO4J_IMAGE = os.environ.get("BIOCYPHER_TEST_NEO4J_IMAGE", "neo4j:5.26-community")
+
+
+def _neo4j_image_present() -> bool:
+    """Whether the import image is already pulled. Never pulls; a multi-GB
+    download is not something a test run should trigger on its own.
+    """
+    try:
+        listed = subprocess.run(
+            ["docker", "image", "ls", "-q", NEO4J_IMAGE],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:  # docker not installed
+        return False
+    return bool(listed.stdout.strip())
+
+
+@pytest.mark.skipif(
+    not _neo4j_image_present(),
+    reason=f"needs a local `{NEO4J_IMAGE}` image; run `docker pull {NEO4J_IMAGE}` to enable "
+    "(override with BIOCYPHER_TEST_NEO4J_IMAGE)",
+)
+def test_generated_import_call_is_accepted_by_neo4j(bw):
+    """Run the import call BioCypher generates against a real neo4j-admin.
+
+    Unit tests assert the flags we expect to emit; only this one catches flags
+    Neo4j expects and we do not. The Parquet default shipped broken for two
+    months because `--input-type` was missing and nothing executed the script.
+    """
+    # the container has neo4j-admin on PATH and the output mounted at /import;
+    # both prefixes must be set before the headers record their paths
+    bw.import_call_bin_prefix = ""
+    bw._import_call_file_prefix = "/import/"
+
+    bw.write_nodes(
+        [
+            BioCypherNode("p1", "protein", properties={"score": 1.0, "name": "a", "taxon": 9606, "genes": ["g1"]}),
+            BioCypherNode("p2", "protein", properties={"score": 2.0, "name": "b", "taxon": 9606, "genes": ["g2"]}),
+        ],
+    )
+    bw.write_edges(
+        [
+            BioCypherEdge(
+                relationship_id="e1",
+                source_id="p1",
+                target_id="p2",
+                relationship_label="PERTURBED_IN_DISEASE",
+                properties={"residue": "T253", "level": 4},
+            ),
+        ],
+    )
+    bw._write_node_headers()
+    bw._write_edge_headers()
+
+    call = bw._get_import_call("database import full", "", "--overwrite-destination=")
+
+    result = subprocess.run(
+        ["docker", "run", "--rm", "-v", f"{bw.outdir}:/import:ro", "--entrypoint", "bash", NEO4J_IMAGE, "-c", call],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=600,
+    )
+
+    assert "IMPORT DONE" in result.stdout, f"{call}\n\n{result.stdout[-3000:]}\n{result.stderr[-3000:]}"
