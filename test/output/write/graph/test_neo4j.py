@@ -156,7 +156,10 @@ def test_neo4j_write_node_data_headers_import_call(bw, _get_nodes):
     with open(import_call_path) as f:
         call = f.read()
 
-    assert protein_header == ":ID;name;score:double;taxon:long;genes:string[];id;preferred_id;:LABEL"
+    if bw.file_format == "parquet":
+        assert protein_header == ":ID;name;score:double;taxon:long;genes;id;preferred_id;:LABEL"
+    else:
+        assert protein_header == ":ID;name;score:double;taxon:long;genes:string[];id;preferred_id;:LABEL"
     assert micro_rna_header == ":ID;name;taxon:long;id;preferred_id;:LABEL"
     assert "neo4j-admin" in call
     assert "import" in call
@@ -1189,7 +1192,7 @@ def test_accidental_exact_batch_size(bw, _get_nodes):
         assert len(micro_rna_0_rows) == 1e4
         assert not isfile(os.path.join(tmp_path, "Protein-part001.parquet"))
         assert not isfile(os.path.join(tmp_path, "MicroRNA-part001.parquet"))
-        assert protein == ":ID;name;score:double;taxon:long;genes:string[];id;preferred_id;:LABEL"
+        assert protein == ":ID;name;score:double;taxon:long;genes;id;preferred_id;:LABEL"
         assert micro_rna == ":ID;name;taxon:long;id;preferred_id;:LABEL"
     else:
         protein_0_csv = os.path.join(tmp_path, "Protein-part000.csv")

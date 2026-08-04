@@ -161,7 +161,16 @@ class _Neo4jBatchWriter(_BatchWriter):
 
             # concatenate key:value in props
             props_list = []
-            for k, v in props.items():
+            for k, v_raw in props.items():
+                # Declare array properties as their scalar type. When the
+                # column is a native Parquet list rather than a delimited
+                # string, Neo4j 2026.03 and 2026.04 silently import an
+                # `x:string[]` column as NULL, losing the data with no error.
+                # The bare `x` form is read correctly by every version tested
+                # (5.26.26 through 5.26.28 and 2026.03 through 2026.06), so it
+                # is the safe declaration until the affected releases age out.
+                v = v_raw.removesuffix("[]") if self.file_format == "parquet" and isinstance(v_raw, str) else v_raw
+
                 if v in ["int", "long", "integer"]:
                     props_list.append(f"{k}:long")
                 elif v in ["int[]", "long[]", "integer[]"]:
@@ -238,7 +247,16 @@ class _Neo4jBatchWriter(_BatchWriter):
 
             # concatenate key:value in props
             props_list = []
-            for k, v in props.items():
+            for k, v_raw in props.items():
+                # Declare array properties as their scalar type. When the
+                # column is a native Parquet list rather than a delimited
+                # string, Neo4j 2026.03 and 2026.04 silently import an
+                # `x:string[]` column as NULL, losing the data with no error.
+                # The bare `x` form is read correctly by every version tested
+                # (5.26.26 through 5.26.28 and 2026.03 through 2026.06), so it
+                # is the safe declaration until the affected releases age out.
+                v = v_raw.removesuffix("[]") if self.file_format == "parquet" and isinstance(v_raw, str) else v_raw
+
                 if v in ["int", "long", "integer"]:
                     props_list.append(f"{k}:long")
                 elif v in ["int[]", "long[]", "integer[]"]:
