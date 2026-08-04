@@ -160,12 +160,7 @@ class _Neo4jBatchWriter(_BatchWriter):
 
             # concatenate key:value in props
             props_list = []
-            for k, v_raw in props.items():
-                # Brackets need to be removed if the column is not a string
-                # of concatenated values but a native parquet array type.
-                # Possibly a Neo4j bug.
-                v = v_raw.removesuffix("[]") if self.file_format == "parquet" and isinstance(v_raw, str) else v_raw
-
+            for k, v in props.items():
                 if v in ["int", "long", "integer"]:
                     props_list.append(f"{k}:long")
                 elif v in ["int[]", "long[]", "integer[]"]:
@@ -242,12 +237,7 @@ class _Neo4jBatchWriter(_BatchWriter):
 
             # concatenate key:value in props
             props_list = []
-            for k, v_raw in props.items():
-                # Brackets need to be removed if the column is not a string
-                # of concatenated values but a native parquet array type.
-                # Possibly a Neo4j bug.
-                v = v_raw.removesuffix("[]") if self.file_format == "parquet" and isinstance(v_raw, str) else v_raw
-
+            for k, v in props.items():
                 if v in ["int", "long", "integer"]:
                     props_list.append(f"{k}:long")
                 elif v in ["int[]", "long[]", "integer[]"]:
