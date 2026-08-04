@@ -2339,11 +2339,16 @@ def _neo4j_image_version() -> tuple:
     "(override with BIOCYPHER_TEST_NEO4J_IMAGE)",
 )
 def test_generated_import_call_is_accepted_by_neo4j(bw):
-    """Run the import call BioCypher generates against a real neo4j-admin.
+    """Import the generated output with a real neo4j-admin, then read it back.
 
     Unit tests assert the flags we expect to emit; only this one catches flags
     Neo4j expects and we do not. The Parquet default shipped broken for two
     months because `--input-type` was missing and nothing executed the script.
+
+    Reading the graph back matters as much as the import succeeding. Declaring
+    a Parquet array column as `x:string[]` imports it as NULL on Neo4j 2026.03
+    and 2026.04 and still reports IMPORT DONE, so an exit-status check passes
+    while the property is silently gone.
 
     Mirrors the version branching of `_construct_import_call_bash`, so the
     Neo4j 4 and Neo4j 5 forms of the call are each exercised by the matching
@@ -2383,12 +2388,57 @@ def test_generated_import_call_is_accepted_by_neo4j(bw):
     else:
         call = bw._get_import_call("database import full", "", "--overwrite-destination=")
 
+    # Reading the graph back needs a running server, which Neo4j 4.x refuses to
+    # start in a bare container ("Failure to create the user log file"). Only
+    # Parquet loses properties silently, and 4.x never reaches the Parquet case,
+    # so there the import result alone is enough.
+    password = "testpassword123"
+    read_back = version >= (5, 26)
+    script = call
+    if read_back:
+        script = f"""
+            neo4j-admin dbms set-initial-password {password} >/dev/null 2>&1 || true
+            {call}
+            neo4j start >/dev/null 2>&1
+            for _ in $(seq 1 90); do
+                cypher-shell -u neo4j -p {password} --non-interactive 'RETURN 1' >/dev/null 2>&1 && break
+                sleep 1
+            done
+            echo "---READBACK---"
+            cypher-shell -u neo4j -p {password} --non-interactive --format plain \
+                "MATCH (n:Protein {{id:'p1'}}) RETURN n.genes AS genes, n.score AS score;"
+        """
+
     result = subprocess.run(
-        ["docker", "run", "--rm", "-v", f"{bw.outdir}:/import:ro", "--entrypoint", "bash", NEO4J_IMAGE, "-c", call],
+        # the licence value covers non-production use and is ignored by
+        # Community images; see .github/actions/test
+        # fmt: off
+        [
+            "docker",
+            "run",
+            "--rm",
+            "-v",
+            f"{bw.outdir}:/import:ro",
+            "-e",
+            "NEO4J_ACCEPT_LICENSE_AGREEMENT=eval",
+            "--entrypoint",
+            "bash",
+            NEO4J_IMAGE,
+            "-c",
+            script,
+        ],
+        # fmt: on
         capture_output=True,
         text=True,
         check=False,
-        timeout=600,
+        timeout=900,
     )
+    detail = f"{call}\n\n{result.stdout[-3000:]}\n{result.stderr[-3000:]}"
 
-    assert "IMPORT DONE" in result.stdout, f"{call}\n\n{result.stdout[-3000:]}\n{result.stderr[-3000:]}"
+    assert "IMPORT DONE" in result.stdout, detail
+
+    if read_back:
+        readback = result.stdout.partition("---READBACK---")[2]
+        # the array property must survive rather than arrive as NULL
+        assert '"g1"' in readback, detail
+        assert "1.0" in readback, detail
