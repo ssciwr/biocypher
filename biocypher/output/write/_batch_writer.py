@@ -1346,7 +1346,7 @@ class _BatchWriter(_Writer, ABC):
                     columns[i].append(val)
             column_names = [str(i) for i in range(len(columns))]
 
-            table = pa.table(dict(zip(column_names, columns, strict=False)))
+            table = pa.table(dict(zip(column_names, columns, strict=True)))
             pq.write_table(table, file_path, compression="zstd")
         else:
             with open(file_path, "w", encoding="utf-8") as f:
