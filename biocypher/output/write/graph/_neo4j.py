@@ -465,7 +465,8 @@ class _Neo4jBatchWriter(_BatchWriter):
 
         import_call += f"{database_cmd}{self.db_name} "
 
-        import_call += f'--input-type="{self.file_format.lower()}" '
+        if self.file_format == "parquet":
+            import_call += '--input-type="parquet" '
 
         import_call += f'--delimiter="{self.escaped_delim}" '
 
@@ -512,7 +513,8 @@ class _Neo4jBatchWriter(_BatchWriter):
         import_call = []
         import_call.append(f"{import_cmd} ")
         import_call.append(f"{database_cmd}{self.db_name} ")
-        import_call.append(f'--input-type="{self.file_format.lower()}" ')
+        if self.file_format == "parquet":
+            import_call.append('--input-type="parquet" ')
         import_call.append(f'--delimiter="{self.escaped_delim}" ')
         import_call.append(f'--array-delimiter="{self.escaped_adelim}" ')
         import_call.append(f'--quote="{self.quote}" ' if self.quote == "'" else f"--quote='{self.quote}' ")
