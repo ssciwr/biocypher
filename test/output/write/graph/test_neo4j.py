@@ -2279,3 +2279,21 @@ def test_parquet_type_mismatch_raises_readable_error(bw):
     msg = str(exc_info.value)
     assert "protein" in msg
     assert "file_format: csv" in msg
+
+
+def test_import_call_input_type_flag(bw):
+    """`--input-type=parquet` must be emitted for Parquet output and omitted for
+    CSV. Neo4j defaults to CSV when the flag is absent, so omitting it for
+    Parquet silently misparses the data files; emitting it for CSV would break
+    Neo4j versions that predate the flag.
+    """
+    bw.write_nodes(
+        [BioCypherNode("p1", "protein", properties={"score": 1.0, "name": "n", "taxon": 9606, "genes": ["g"]})],
+    )
+    call = bw.get_import_call()
+
+    if bw.file_format == "parquet":
+        assert "--input-type" in call
+        assert "parquet" in call
+    else:
+        assert "--input-type" not in call
