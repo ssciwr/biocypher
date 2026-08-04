@@ -333,7 +333,7 @@ requires-dist = [
     { name = "networkx", specifier = ">=3.0" },
     { name = "pandas", specifier = ">=2.0.1" },
     { name = "pooch", specifier = ">=1.7.0" },
-    { name = "pyarrow", marker = "extra == 'neo4j'", specifier = ">=24.0.0" },
+    { name = "pyarrow", marker = "extra == 'neo4j'", specifier = ">=12.0.0" },
     { name = "pyyaml", specifier = ">=5.0" },
     { name = "rdflib", specifier = ">=6.2.0" },
     { name = "scirpy", marker = "extra == 'scirpy'", specifier = ">=0.22.0" },
