@@ -1214,28 +1214,6 @@ class _BatchWriter(_Writer, ABC):
                 )
                 return False
 
-            plist = []
-            # make all into strings, put actual strings in quotes
-            for k, v in prop_dict.items():
-                p = e_props.get(k)
-                if p is None:  # TODO make field empty instead of ""?
-                    plist.append("")
-                elif v in ["bool", "boolean"]:
-                    plist.append(str(p).lower())
-                elif v in [
-                    "int",
-                    "integer",
-                    "long",
-                    "float",
-                    "double",
-                    "dbl",
-                ]:
-                    plist.append(str(p))
-                elif isinstance(p, list):
-                    plist.append(self._write_array_string(map(str, p)))
-                else:
-                    plist.append(self._quote_string(str(p)))
-
             entries = [e.get_source_id()]
 
             skip_id = False
@@ -1271,6 +1249,28 @@ class _BatchWriter(_Writer, ABC):
                 if self.file_format == "parquet":
                     entries.extend(e_props.get(k) for k in prop_dict)
                 else:
+                    plist = []
+                    # make all into strings, put actual strings in quotes
+                    for k, v in prop_dict.items():
+                        p = e_props.get(k)
+                        if p is None:  # TODO make field empty instead of ""?
+                            plist.append("")
+                        elif v in ["bool", "boolean"]:
+                            plist.append(str(p).lower())
+                        elif v in [
+                            "int",
+                            "integer",
+                            "long",
+                            "float",
+                            "double",
+                            "dbl",
+                        ]:
+                            plist.append(str(p))
+                        elif isinstance(p, list):
+                            plist.append(self._write_array_string(map(str, p)))
+                        else:
+                            plist.append(self._quote_string(str(p)))
+
                     entries.append(self.delim.join(plist))
 
             entries.append(e.get_target_id())
