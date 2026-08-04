@@ -24,12 +24,12 @@ on your system.
     adapts its behavior accordingly (e.g., constraint syntax, database
     parameters).
 
-    The exception is the default Parquet output of offline mode. Neo4j moved
-    to calendar versioning, keeping the semantic 5.26.x line for LTS, so the
-    requirement has to be stated for both: **5.26.26 or later** on the LTS
-    line, or **any calendar release** (2026.03 and later). The version is only
-    known at import time, not while BioCypher writes, so this cannot be
-    detected for you; set `file_format: csv` if you target anything earlier.
+    The optional Parquet output of offline mode is the exception, and needs a
+    recent Neo4j. Neo4j moved to calendar versioning, keeping the semantic
+    5.26.x line for LTS, so the requirement has to be stated for both:
+    **5.26.26 or later** on the LTS line, or **any calendar release** (2026.03
+    and later). The version is only known at import time, not while BioCypher
+    writes, so this cannot be detected for you.
 
 !!! note "Installing Neo4j Python Driver (Optional)"
     The Neo4j Python driver is only needed for online mode. If you plan to use
@@ -79,9 +79,10 @@ neo4j:  ### Neo4j configuration ###
   delimiter: ';'
   array_delimiter: '|'
   quote_character: "'"
-  # File format for offline node and edge data. The default is `parquet`.
-  # Set to `csv` to use the legacy CSV output.
-  file_format: parquet
+  # File format for offline node and edge data. The default is `csv`.
+  # Set to `parquet` for smaller files and no delimiter/quoting conflicts;
+  # needs Neo4j 5.26.26+ (LTS) or a calendar release to import.
+  file_format: csv
 
   # How to write the node labels in the export files.
   labels_order: "Ascending" # Default: From more specific to more generic.
@@ -128,31 +129,40 @@ to be written to the graph.
 
 Data input from the source database is exactly as in the case of interacting
 with a running database, with the data representation being converted to a
-series of Parquet files in a designated output folder (standard being
-`biocypher-out/` and the current datetime). Parquet is the default offline
-format. BioCypher creates separate CSV header files and Parquet data files for
-all node and edge types to be represented in the graph. A single type whose
+series of CSV files in a designated output folder (standard being
+`biocypher-out/` and the current datetime). BioCypher creates separate header
+and data files for all node and edge types to be represented in the graph. A
+single type whose
 nodes carry varying property sets (for labels not fixed by the schema
 configuration) may be split into more than one header/part group, each named
 after the type with a numeric suffix (e.g. `ProteinGroup1`); see
 [Varying property sets](../../learn/tutorials/tutorial001_basics.md#varying-property-sets).
 
-!!! note "Parquet is now the default"
+### Parquet data files
+
+The data files can be written as Parquet instead of CSV, keeping the CSV
+headers. Parquet stores values in their native types rather than as strings, so
+the output is substantially smaller, and it removes the risk of your data
+colliding with the field delimiter, array delimiter or quote character:
+
+```yaml
+neo4j:
+  file_format: parquet
+```
+
+!!! warning "Parquet needs a recent Neo4j"
     Importing Parquet requires **Neo4j 5.26.26 or later** on the 5.26 LTS
     line, or **any calendar-versioned release** (2026.03 and later). The
     generated `neo4j-admin-import-call.sh` passes `--input-type=parquet`,
     which versions predating Parquet support reject with
     `Unknown option: '--input-type=parquet'`; 5.26.25 and earlier accept the
-    flag but then read the CSV header file as Parquet and fail. Select CSV if
-    you target an earlier Neo4j, or if a downstream tool or workflow needs CSV
-    data files:
+    flag but then read the CSV header file as Parquet and fail.
 
-    ```yaml
-    neo4j:
-      file_format: csv
-    ```
+    BioCypher cannot check this for you, because the Neo4j version is only
+    known when the import runs, not while the files are written. Confirm your
+    target version before starting a long build.
 
-Offline mode requires [PyArrow](https://arrow.apache.org/docs/python/) for the default Parquet output. It is
+Parquet output requires [PyArrow](https://arrow.apache.org/docs/python/),
 included with the Neo4j optional dependency:
 
 ```bash
