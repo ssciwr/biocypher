@@ -2258,3 +2258,24 @@ def test_check_labels_order_invalid_raises_string_error(bw):
         bw._check_labels_order()
     assert isinstance(exc_info.value.args[0], str), "error message must be str, not tuple"
     assert "edge_labels_order" in exc_info.value.args[0]
+
+
+def test_parquet_type_mismatch_raises_readable_error(bw):
+    """A schema-declared property receiving a value of another type cannot be
+    written to Parquet. Report the entity type and the escape hatch instead of
+    letting pyarrow's internal ArrowInvalid surface.
+    """
+    if bw.file_format != "parquet":
+        pytest.skip("CSV stringifies every value, so there is no type conflict")
+
+    nodes = [
+        BioCypherNode("p1", "protein", properties={"score": 4.0, "name": "n", "taxon": 9606, "genes": ["g"]}),
+        BioCypherNode("p2", "protein", properties={"score": "high", "name": "n", "taxon": 9606, "genes": ["g"]}),
+    ]
+
+    with pytest.raises(ValueError) as exc_info:
+        bw._write_node_data(nodes, batch_size=int(1e4))
+
+    msg = str(exc_info.value)
+    assert "protein" in msg
+    assert "file_format: csv" in msg

@@ -1346,7 +1346,16 @@ class _BatchWriter(_Writer, ABC):
                     columns[i].append(val)
             column_names = [str(i) for i in range(len(columns))]
 
-            table = pa.table(dict(zip(column_names, columns, strict=True)))
+            try:
+                table = pa.table(dict(zip(column_names, columns, strict=True)))
+            except pa.ArrowInvalid as exc:
+                msg = (
+                    f"Cannot write Parquet for `{label}`: a property mixes incompatible value "
+                    f"types ({exc}). Fix the offending values, or set `file_format: csv` in the "
+                    f"`neo4j` section of your BioCypher config."
+                )
+                logger.error(msg)
+                raise ValueError(msg) from exc
             pq.write_table(table, file_path, compression="zstd")
         else:
             with open(file_path, "w", encoding="utf-8") as f:
