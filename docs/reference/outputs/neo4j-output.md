@@ -24,10 +24,12 @@ on your system.
     adapts its behavior accordingly (e.g., constraint syntax, database
     parameters).
 
-    The exception is the default Parquet output of offline mode, which
-    requires **Neo4j 5.26.28 or later**. The version is only known at import
-    time, not while BioCypher writes, so this cannot be detected for you; set
-    `file_format: csv` if you target an earlier version.
+    The exception is the default Parquet output of offline mode. Neo4j moved
+    to calendar versioning, keeping the semantic 5.26.x line for LTS, so the
+    requirement has to be stated for both: **5.26.26 or later** on the LTS
+    line, or **any calendar release** (2026.03 and later). The version is only
+    known at import time, not while BioCypher writes, so this cannot be
+    detected for you; set `file_format: csv` if you target anything earlier.
 
 !!! note "Installing Neo4j Python Driver (Optional)"
     The Neo4j Python driver is only needed for online mode. If you plan to use
@@ -136,11 +138,14 @@ after the type with a numeric suffix (e.g. `ProteinGroup1`); see
 [Varying property sets](../../learn/tutorials/tutorial001_basics.md#varying-property-sets).
 
 !!! note "Parquet is now the default"
-    Importing Parquet requires **Neo4j 5.26.28 or later**. The generated
-    `neo4j-admin-import-call.sh` passes `--input-type=parquet`, which earlier
-    versions reject with `Unknown option: '--input-type=parquet'`. Select CSV
-    if you target an earlier Neo4j, or if a downstream tool or workflow needs
-    CSV data files:
+    Importing Parquet requires **Neo4j 5.26.26 or later** on the 5.26 LTS
+    line, or **any calendar-versioned release** (2026.03 and later). The
+    generated `neo4j-admin-import-call.sh` passes `--input-type=parquet`,
+    which versions predating Parquet support reject with
+    `Unknown option: '--input-type=parquet'`; 5.26.25 and earlier accept the
+    flag but then read the CSV header file as Parquet and fail. Select CSV if
+    you target an earlier Neo4j, or if a downstream tool or workflow needs CSV
+    data files:
 
     ```yaml
     neo4j:
