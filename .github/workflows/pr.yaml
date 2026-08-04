@@ -9,14 +9,14 @@ jobs:
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: ["3.10", "3.11", "3.12"]
-        neo4j-version: ["4.4-enterprise", "5.26.28-enterprise"]
+        neo4j-version: ["4.4-community", "5.26.28-community"]
         exclude:
           # Windows tests don't use the PostgreSQL/Neo4j Docker containers
           - os: "windows-latest"
-            neo4j-version: "4.4-enterprise"
+            neo4j-version: "4.4-community"
           # https://github.com/biocypher/biocypher/issues/339
           - os: "macos-latest"
-            neo4j-version: "4.4-enterprise"
+            neo4j-version: "4.4-community"
     runs-on: ${{ matrix.os }}
     defaults:
       run:
