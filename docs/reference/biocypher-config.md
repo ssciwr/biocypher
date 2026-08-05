@@ -53,6 +53,7 @@ biocypher:
   dbms: neo4j
   schema_config_path: config/schema_config.yaml
   offline: true
+  big_data: false
   strict_mode: false
   head_ontology:
     url: https://github.com/biolink/biolink-model/raw/v3.2.1/biolink-model.owl.ttl
@@ -161,6 +162,7 @@ csv:
 | `dbms` | Specifies which database management system to use | string | `"neo4j"` |
 | `schema_config_path` | Path to the schema configuration file | string | `"config/schema_config.yaml"` |
 | `offline` | Whether to run in offline mode (no running DBMS or in-memory object) | boolean | `true` |
+| `big_data` | Use disk-backed deduplication for large offline builds. Requires the `bigdata` extra and cannot be used in online mode. | boolean | `false` |
 | `strict_mode` | Whether to enforce strict schema validation | boolean | `false` |
 | `head_ontology.url` | URL or file path to the main ontology file | string | Biolink model URL |
 | `head_ontology.root_node` | The root node of the ontology to use | string | `"entity"` |
@@ -171,6 +173,9 @@ csv:
 | `output_directory` | Directory for output files | string | `"biocypher-out"` |
 | `cache_directory` | Directory for cache files | string | `".cache"` |
 | `tail_ontologies` | Additional ontologies to use (optional) | object | - |
+
+For usage guidance and resource requirements, see
+[Large-scale offline builds](../learn/guides/large-scale-builds.md).
 
 ### Neo4j Configuration
 

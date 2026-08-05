@@ -42,6 +42,12 @@ Furthermore, you can specify whether to use the `offline` or `online` mode.
   for use with [BioChatter](../../biocypher-project/biochatter-integration.md)
   by calling `bc.write_schema_info()` after writing nodes and edges.
 
+    For very large offline builds, set `big_data: true` to use disk-backed
+    deduplication. This requires the optional `bigdata` dependency extra; see
+    [Large-scale offline builds](../../learn/guides/large-scale-builds.md) for
+    setup and resource requirements. `big_data` is not supported in online
+    mode.
+
 !!! warning "Warning"
 	The `online` mode is currently only supported for `neo4j`, `tabular`,
 	`csv`, `pandas`, and `networkx`.
