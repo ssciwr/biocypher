@@ -87,6 +87,95 @@ class _Neo4jBatchWriter(_BatchWriter):
 
         self.shell = shell
 
+    def _get_node_table_column_names(self, prop_dict: dict):
+        if self.file_format == "parquet":
+            props_list = list(prop_dict)
+        else:
+            props_list = []
+            for k, v in prop_dict.items():
+                if v in ["int", "long", "integer"]:
+                    props_list.append(f"{k}:long")
+                elif v in ["int[]", "long[]", "integer[]"]:
+                    props_list.append(f"{k}:long[]")
+                elif v in ["float", "double", "dbl"]:
+                    props_list.append(f"{k}:double")
+                elif v in ["float[]", "double[]"]:
+                    props_list.append(f"{k}:double[]")
+                elif v in ["bool", "boolean"]:
+                    # TODO Neo4j boolean support / spelling?
+                    props_list.append(f"{k}:boolean")
+                elif v in ["bool[]", "boolean[]"]:
+                    props_list.append(f"{k}:boolean[]")
+                elif v in ["str[]", "string[]"]:
+                    props_list.append(f"{k}:string[]")
+                else:
+                    props_list.append(f"{k}")
+
+        out_list = [":ID", *props_list, ":LABEL"]
+
+        return out_list
+
+    def _get_edge_table_column_names(self, prop_dict: dict):
+        if self.file_format == "parquet":
+            props_list = list(prop_dict)
+        else:
+            props_list = []
+            for k, v in prop_dict.items():
+                if v in ["int", "long", "integer"]:
+                    props_list.append(f"{k}:long")
+                elif v in ["int[]", "long[]", "integer[]"]:
+                    props_list.append(f"{k}:long[]")
+                elif v in ["float", "double"]:
+                    props_list.append(f"{k}:double")
+                elif v in ["float[]", "double[]"]:
+                    props_list.append(f"{k}:double[]")
+                elif v in [
+                    "bool",
+                    "boolean",
+                ]:  # TODO does Neo4j support bool?
+                    props_list.append(f"{k}:boolean")
+                elif v in ["bool[]", "boolean[]"]:
+                    props_list.append(f"{k}:boolean[]")
+                elif v in ["str[]", "string[]"]:
+                    props_list.append(f"{k}:string[]")
+                else:
+                    props_list.append(f"{k}")
+
+        skip_id = False
+        schema_label = None
+
+        if label in ["IS_SOURCE_OF", "IS_TARGET_OF", "IS_PART_OF"]:
+            skip_id = True
+        elif not self.translator.ontology.mapping.extended_schema.get(label):
+            # find label in schema by label_as_edge
+            for (
+                k,
+                v,
+            ) in self.translator.ontology.mapping.extended_schema.items():
+                if v.get("label_as_edge") == label:
+                    schema_label = k
+                    break
+        else:
+            schema_label = label
+
+        out_list = [":START_ID"]
+
+        if schema_label:
+            if (
+                self.translator.ontology.mapping.extended_schema.get(  # (seems to not work with 'not')
+                    schema_label,
+                ).get("use_id")
+                is False
+            ):
+                skip_id = True
+
+        if not skip_id:
+            out_list.append("id")
+
+        out_list.extend(props_list)
+        out_list.extend([":END_ID", ":TYPE"])
+        return out_list
+
     def _get_default_import_call_bin_prefix(self):
         """Method to provide the default string for the import call bin prefix.
 
@@ -143,69 +232,39 @@ class _Neo4jBatchWriter(_BatchWriter):
             return False
 
         for label, props in self.node_property_dict.items():
-            _id = ":ID"
-
             # translate label to PascalCase
             pascal_label = self.translator.name_sentence_to_pascal(parse_label(label))
-
-            header = f"{pascal_label}-header.csv"
-            header_path = os.path.join(
-                self.outdir,
-                header,
-            )
             parts = f"{pascal_label}-part.*"
 
-            # check if file already exists
-            if os.path.exists(header_path):
-                logger.warning(
-                    f"Header file `{header_path}` already exists. Overwriting.",
+            if self.file_format == "csv":
+                header = f"{pascal_label}-header.csv"
+                header_path = os.path.join(
+                    self.outdir,
+                    header,
                 )
 
-            # concatenate key:value in props
-            props_list = []
-            for k, v_raw in props.items():
-                # Declare array properties as their scalar type. When the
-                # column is a native Parquet list rather than a delimited
-                # string, Neo4j 2026.03 and 2026.04 silently import an
-                # `x:string[]` column as NULL, losing the data with no error.
-                # The bare `x` form is read correctly by every version tested
-                # (5.26.26 through 5.26.28 and 2026.03 through 2026.06), so it
-                # is the safe declaration until the affected releases age out.
-                v = v_raw.removesuffix("[]") if self.file_format == "parquet" and isinstance(v_raw, str) else v_raw
+                # check if file already exists
+                if os.path.exists(header_path):
+                    logger.warning(
+                        f"Header file `{header_path}` already exists. Overwriting.",
+                    )
 
-                if v in ["int", "long", "integer"]:
-                    props_list.append(f"{k}:long")
-                elif v in ["int[]", "long[]", "integer[]"]:
-                    props_list.append(f"{k}:long[]")
-                elif v in ["float", "double", "dbl"]:
-                    props_list.append(f"{k}:double")
-                elif v in ["float[]", "double[]"]:
-                    props_list.append(f"{k}:double[]")
-                elif v in ["bool", "boolean"]:
-                    # TODO Neo4j boolean support / spelling?
-                    props_list.append(f"{k}:boolean")
-                elif v in ["bool[]", "boolean[]"]:
-                    props_list.append(f"{k}:boolean[]")
-                elif v in ["str[]", "string[]"]:
-                    props_list.append(f"{k}:string[]")
-                else:
-                    props_list.append(f"{k}")
+                out_list = self._get_node_table_column_names(props)
 
-            # create list of lists and flatten
-            out_list = [[_id], props_list, [":LABEL"]]
-            out_list = [val for sublist in out_list for val in sublist]
+                with open(header_path, "w", encoding="utf-8") as f:
+                    # concatenate with delimiter
+                    row = self.delim.join(out_list)
+                    f.write(row)
 
-            with open(header_path, "w", encoding="utf-8") as f:
-                # concatenate with delimiter
-                row = self.delim.join(out_list)
-                f.write(row)
+                # add file path to neo4 admin import statement (import call file
+                # path may be different from actual file path)
+                import_call_header_path = os.path.join(
+                    self.import_call_file_prefix,
+                    header,
+                )
+            else:
+                import_call_header_path = None
 
-            # add file path to neo4 admin import statement (import call file
-            # path may be different from actual file path)
-            import_call_header_path = os.path.join(
-                self.import_call_file_prefix,
-                header,
-            )
             import_call_parts_path = os.path.join(
                 self.import_call_file_prefix,
                 parts,
@@ -234,96 +293,36 @@ class _Neo4jBatchWriter(_BatchWriter):
         for label, props in self.edge_property_dict.items():
             # translate label to PascalCase
             pascal_label = self.translator.name_sentence_to_pascal(parse_label(label))
-
-            # paths
-            header = f"{pascal_label}-header.csv"
-            header_path = os.path.join(
-                self.outdir,
-                header,
-            )
             parts = f"{pascal_label}-part.*"
 
-            # check for file exists
-            if os.path.exists(header_path):
-                logger.warning(f"File {header_path} already exists. Overwriting.")
+            if self.file_format == "csv":
+                # paths
+                header = f"{pascal_label}-header.csv"
+                header_path = os.path.join(
+                    self.outdir,
+                    header,
+                )
 
-            # concatenate key:value in props
-            props_list = []
-            for k, v_raw in props.items():
-                # Declare array properties as their scalar type. When the
-                # column is a native Parquet list rather than a delimited
-                # string, Neo4j 2026.03 and 2026.04 silently import an
-                # `x:string[]` column as NULL, losing the data with no error.
-                # The bare `x` form is read correctly by every version tested
-                # (5.26.26 through 5.26.28 and 2026.03 through 2026.06), so it
-                # is the safe declaration until the affected releases age out.
-                v = v_raw.removesuffix("[]") if self.file_format == "parquet" and isinstance(v_raw, str) else v_raw
+                # check for file exists
+                if os.path.exists(header_path):
+                    logger.warning(f"File {header_path} already exists. Overwriting.")
 
-                if v in ["int", "long", "integer"]:
-                    props_list.append(f"{k}:long")
-                elif v in ["int[]", "long[]", "integer[]"]:
-                    props_list.append(f"{k}:long[]")
-                elif v in ["float", "double"]:
-                    props_list.append(f"{k}:double")
-                elif v in ["float[]", "double[]"]:
-                    props_list.append(f"{k}:double[]")
-                elif v in [
-                    "bool",
-                    "boolean",
-                ]:  # TODO does Neo4j support bool?
-                    props_list.append(f"{k}:boolean")
-                elif v in ["bool[]", "boolean[]"]:
-                    props_list.append(f"{k}:boolean[]")
-                elif v in ["str[]", "string[]"]:
-                    props_list.append(f"{k}:string[]")
-                else:
-                    props_list.append(f"{k}")
+                out_list = self._get_edge_table_column_names(props)
 
-            skip_id = False
-            schema_label = None
+                with open(header_path, "w", encoding="utf-8") as f:
+                    # concatenate with delimiter
+                    row = self.delim.join(out_list)
+                    f.write(row)
 
-            if label in ["IS_SOURCE_OF", "IS_TARGET_OF", "IS_PART_OF"]:
-                skip_id = True
-            elif not self.translator.ontology.mapping.extended_schema.get(label):
-                # find label in schema by label_as_edge
-                for (
-                    k,
-                    v,
-                ) in self.translator.ontology.mapping.extended_schema.items():
-                    if v.get("label_as_edge") == label:
-                        schema_label = k
-                        break
+                # add file path to neo4 admin import statement (import call file
+                # path may be different from actual file path)
+                import_call_header_path = os.path.join(
+                    self.import_call_file_prefix,
+                    header,
+                )
             else:
-                schema_label = label
+                import_call_header_path = None
 
-            out_list = [":START_ID"]
-
-            if schema_label:
-                if (
-                    self.translator.ontology.mapping.extended_schema.get(  # (seems to not work with 'not')
-                        schema_label,
-                    ).get("use_id")
-                    is False
-                ):
-                    skip_id = True
-
-            if not skip_id:
-                out_list.append("id")
-
-            out_list.extend(props_list)
-            out_list.extend([":END_ID", ":TYPE"])
-
-            with open(header_path, "w", encoding="utf-8") as f:
-                # concatenate with delimiter
-                row = self.delim.join(out_list)
-                f.write(row)
-
-            # add file path to neo4 admin import statement (import call file
-            # path may be different from actual file path)
-            import_call_header_path = os.path.join(
-                self.import_call_file_prefix,
-                header,
-            )
             import_call_parts_path = os.path.join(
                 self.import_call_file_prefix,
                 parts,
@@ -506,11 +505,11 @@ class _Neo4jBatchWriter(_BatchWriter):
 
         # append node import calls
         for header_path, parts_path in self.import_call_nodes:
-            import_call += f'--nodes="{header_path},{parts_path}" '
+            import_call += f'--nodes="{header_path + "," if header_path else ""}{parts_path}" '
 
         # append edge import calls
         for header_path, parts_path in self.import_call_edges:
-            import_call += f'--relationships="{header_path},{parts_path}" '
+            import_call += f'--relationships="{header_path + "," if header_path else ""}{parts_path}" '
 
         return import_call
 
@@ -541,10 +540,12 @@ class _Neo4jBatchWriter(_BatchWriter):
         import_call.append("--skip-duplicate-nodes=true " if self.skip_duplicate_nodes else "")
         import_call.append(f"{self.import_call_additional_options} " if self.import_call_additional_options else "")
         import_call.extend(
-            f'--nodes="{header_path},{parts_path}" ' for header_path, parts_path in self.import_call_nodes
+            f'--nodes="{header_path + "," if header_path else ""},{parts_path}" '
+            for header_path, parts_path in self.import_call_nodes
         )
         import_call.extend(
-            f'--relationships="{header_path},{parts_path}" ' for header_path, parts_path in self.import_call_edges
+            f'--relationships="{header_path + "," if header_path else ""},{parts_path}" '
+            for header_path, parts_path in self.import_call_edges
         )
 
         return "".join(import_call)

@@ -414,6 +414,44 @@ class _BatchWriter(_Writer, ABC):
 
         return delimiter, delimiter
 
+    def _get_node_table_column_names(self, prop_dict: dict):
+        """Return target-specific column names for a node data table.
+
+        Subclasses use this to provide either header fields or column names,
+        including the target's required identifier and label columns.
+
+        Args:
+        ----
+            prop_dict (dict): Mapping of property names to their declared
+                data types.
+
+        Returns:
+        -------
+            list | None: Column names in the order of the written values, or
+                ``None`` if this is not applicable.
+
+        """
+        return
+
+    def _get_edge_table_column_names(self, prop_dict: dict):
+        """Return target-specific column names for an edge data table.
+
+        Subclasses use this to provide either header fields or column names,
+        including the target's required source, target, and type columns.
+
+        Args:
+        ----
+            prop_dict (dict): Mapping of property names to their declared
+                data types.
+
+        Returns:
+        -------
+            list | None: Column names in the order of the written values, or
+                ``None`` if this is not applicable.
+
+        """
+        return
+
     def write_nodes(self, nodes, batch_size: int = int(1e6), force: bool = False):
         """Write nodes and their headers.
 
@@ -962,7 +1000,7 @@ class _BatchWriter(_Writer, ABC):
 
         # avoid writing empty files
         if rows:
-            self._write_next_part(label, rows)
+            self._write_next_part(label, rows, self._get_node_table_column_names(prop_dict))
 
         return True
 
@@ -1238,7 +1276,7 @@ class _BatchWriter(_Writer, ABC):
                     self.translator.ontology.mapping.extended_schema.get(
                         schema_label,
                     ).get("use_id")
-                    == False  # noqa: E712 (seems to not work with 'not')
+                    == False
                 ):
                     skip_id = True
 
@@ -1287,11 +1325,11 @@ class _BatchWriter(_Writer, ABC):
 
         # avoid writing empty files
         if rows:
-            self._write_next_part(label, rows)
+            self._write_next_part(label, rows, self._get_edge_table_column_names(prop_dict))
 
         return True
 
-    def _write_next_part(self, label: str, rows: list):
+    def _write_next_part(self, label: str, rows: list, column_names: list | None):
         """Write a list of strings to a new part file.
 
         Args:
@@ -1302,9 +1340,12 @@ class _BatchWriter(_Writer, ABC):
 
             rows (list): list of rows to be written
 
+            column_names (list | None): Names for columns, ordered to
+                match the values in each row. May not be applicable.
+
         Returns:
         -------
-            bool: The return value. True for success, False otherwise.
+            None
 
         """
         # translate label to PascalCase
@@ -1344,7 +1385,6 @@ class _BatchWriter(_Writer, ABC):
             for row in rows:
                 for i, val in enumerate(row):
                     columns[i].append(val)
-            column_names = [str(i) for i in range(len(columns))]
 
             try:
                 table = pa.table(dict(zip(column_names, columns, strict=True)))
