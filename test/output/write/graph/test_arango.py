@@ -2,9 +2,6 @@ import os
 
 import pytest
 
-from biocypher.output.write._get_writer import get_writer
-from biocypher.output.write.graph._neo4j import _Neo4jBatchWriter
-
 
 @pytest.mark.parametrize("length", [4], scope="function")
 def test_arango_write_data_headers_import_call(
@@ -104,29 +101,15 @@ def test_arango_write_data_headers_import_call(
     assert "custom/path/to/arangoimp --type csv" in call
 
 
-def test_arango_writer_does_not_inherit_the_neo4j_default_format(
-    monkeypatch,
-    translator,
-    deduplicator,
-    tmp_path_session,
-):
-    """ArangoDB inherits the Neo4j batch writer but imports with `arangoimport`,
-    which cannot read Parquet, so it must keep CSV whatever the Neo4j writer
-    defaults to.
-
-    The Neo4j default is forced to Parquet here rather than relying on its
-    current value: both writers default to CSV today, so a test that only read
-    the ArangoDB default would keep passing if the override were deleted.
-    There is no `arangodb` section in the packaged config, so this writer takes
-    the class attribute; drop `_ArangoDBBatchWriter._default_file_format` and
-    the lookup falls through to the patched Neo4j value and this fails.
-
-    Goes through `get_writer`, the path a real build takes, which is where the
-    original bug was reachable.
+def test_arango_writer_defaults_to_csv(translator, deduplicator, tmp_path_session):
+    """ArangoDB inherits the Neo4j batch writer, whose default output format is
+    Parquet. `arangoimport` cannot read Parquet, so the ArangoDB writer must
+    keep CSV as its default. Regression test: this is only reproducible through
+    `get_writer`, which is the path a real build takes.
     """
-    monkeypatch.setattr(_Neo4jBatchWriter, "_default_file_format", "parquet")
+    from biocypher.output.write._get_writer import get_writer
 
-    arango = get_writer(
+    writer = get_writer(
         dbms="arangodb",
         translator=translator,
         deduplicator=deduplicator,
@@ -134,13 +117,15 @@ def test_arango_writer_does_not_inherit_the_neo4j_default_format(
         strict_mode=False,
     )
 
-    assert arango.file_format == "csv"
+    assert writer.file_format == "csv"
 
 
-def test_neo4j_writer_defaults_to_csv(translator, deduplicator, tmp_path_session):
-    """Parquet import needs Neo4j 5.26.26+ (LTS) or a calendar release, and the
-    target version is unknowable at write time, so CSV is the default.
+def test_neo4j_writer_defaults_to_parquet(translator, deduplicator, tmp_path_session):
+    """The sibling of `test_arango_writer_defaults_to_csv`: the Neo4j writer
+    itself must still default to Parquet through the same path.
     """
+    from biocypher.output.write._get_writer import get_writer
+
     writer = get_writer(
         dbms="neo4j",
         translator=translator,
@@ -149,4 +134,4 @@ def test_neo4j_writer_defaults_to_csv(translator, deduplicator, tmp_path_session
         strict_mode=False,
     )
 
-    assert writer.file_format == "csv"
+    assert writer.file_format == "parquet"

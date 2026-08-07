@@ -24,12 +24,10 @@ class _Neo4jBatchWriter(_BatchWriter):
         - _write_array_string
     """
 
-    # Output format used when none is configured. CSV, because Parquet import
-    # needs Neo4j 5.26.26+ on the LTS line or a calendar release, and the
-    # target version is not knowable while we write. Subclasses that inherit
-    # this writer but import with a different tool (e.g. ArangoDB) override it;
-    # see `_ArangoDBBatchWriter`.
-    _default_file_format = "csv"
+    # Output format used when none is configured. Subclasses that inherit the
+    # Neo4j batch writer but import their output with a different tool (e.g.
+    # ArangoDB) override this; see `_ArangoDBBatchWriter`.
+    _default_file_format = "parquet"
 
     def __init__(self, *args, shell="system", **kwargs):
         """Constructor.
@@ -68,10 +66,11 @@ class _Neo4jBatchWriter(_BatchWriter):
                 raise
 
             msg = (
-                "Parquet output selected. Importing it requires Neo4j 5.26.26 or later on the "
-                "5.26 LTS line, or any calendar-versioned release (2026.03 and later); earlier "
-                "versions will reject the generated import script. The target version cannot be "
-                "checked while writing, so make sure of it before starting a long build."
+                "The default output format for Neo4j offline mode has been changed to Parquet. "
+                "Importing it requires Neo4j 5.26.26 or later on the 5.26 LTS line, or any "
+                "calendar-versioned release (2026.03 and later); earlier versions will reject the "
+                "generated import script. Upgrade Neo4j, or explicitly set `file_format: csv` in "
+                "the `neo4j` section of your BioCypher config file."
             )
             logger.warning(msg)
 

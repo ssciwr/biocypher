@@ -101,12 +101,11 @@ neo4j:
   quote_character: "'"
 
   # File format of the node and edge data files. Headers are always CSV.
-  # `parquet` writes smaller files and avoids delimiter and quoting conflicts
-  # in your data, but requires PyArrow (installed with `biocypher[neo4j]`) and,
-  # to import, Neo4j 5.26.26+ on the 5.26 LTS line or any calendar-versioned
-  # release. The delimiter, array delimiter and quote character above apply to
+  # `parquet` requires PyArrow (installed with `biocypher[neo4j]`) and, to
+  # import, Neo4j 5.26.26+ on the 5.26 LTS line or any calendar-versioned
+  # release; the delimiter, array delimiter and quote character above apply to
   # the `csv` data files only.
-  file_format: csv # or `parquet`
+  file_format: parquet # or `csv`
 
   # How to write the labels in the export files.
   labels_order: "Ascending" # Default: From more specific to more generic.

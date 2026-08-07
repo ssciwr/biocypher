@@ -99,7 +99,7 @@ neo4j:
   delimiter: ";"
   array_delimiter: "|"
   quote_character: "'"
-  file_format: csv # `csv` (default) or `parquet` (needs Neo4j >= 5.26.26 LTS or a calendar release)
+  file_format: parquet # `parquet` (default, needs Neo4j >= 5.26.26 LTS or a calendar release) or `csv`
 
   multi_db: true
 
@@ -185,7 +185,7 @@ csv:
 | `delimiter` | Field delimiter for CSV import files | string | `";"` |
 | `array_delimiter` | Delimiter for array values | string | `"\|"` |
 | `quote_character` | Character used for quoting string values | string | `"'"` |
-| `file_format` | File format for offline node and edge data; `"parquet"` needs Neo4j >= 5.26.26 (LTS) or any calendar release | string | `"csv"` (`"parquet"` is also supported) |
+| `file_format` | File format for offline node and edge data; `"parquet"` needs Neo4j >= 5.26.26 (LTS) or any calendar release | string | `"parquet"` (`"csv"` is also supported) |
 | `multi_db` | Whether to use multi-database support | boolean | `true` |
 | `skip_duplicate_nodes` | Whether to skip duplicate nodes during import | boolean | `false` |
 | `skip_bad_relationships` | Whether to skip relationships with missing endpoints | boolean | `false` |
