@@ -117,10 +117,20 @@ def test_create_import_call(bw):
     assert '--delimiter=";"' in call
     assert '--array-delimiter="|" --quote="\'"' in call
     if bw.file_format == "parquet":
-        assert get_parquet_column_names(part_path(bw, "PostTranslationalInteraction")) == [":ID", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PostTranslationalInteraction")) == [
+            ":ID",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
         assert get_parquet_column_names(part_path(bw, "IS_SOURCE_OF")) == [":START_ID", ":END_ID", ":TYPE"]
         assert get_parquet_column_names(part_path(bw, "IS_TARGET_OF")) == [":START_ID", ":END_ID", ":TYPE"]
-        assert get_parquet_column_names(part_path(bw, "PERTURBED_IN_DISEASE")) == [":START_ID", "id", ":END_ID", ":TYPE"]
+        assert get_parquet_column_names(part_path(bw, "PERTURBED_IN_DISEASE")) == [
+            ":START_ID",
+            "id",
+            ":END_ID",
+            ":TYPE",
+        ]
         assert "-header.csv" not in call
     else:
         assert (
@@ -407,7 +417,16 @@ def test_property_types(bw):
     assert passed
 
     if bw.file_format == "parquet":
-        assert get_parquet_column_names(data_csv) == [":ID", "name", "score", "taxon", "genes", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(data_csv) == [
+            ":ID",
+            "name",
+            "score",
+            "taxon",
+            "genes",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
         rows = get_parquet_content_as_rows(data_csv)
         assert rows[0][:-1] == ("p1", "StringProperty1", 4.0, 9606, ["gene1", "gene2"], "p1", "id")
         assert "BiologicalEntity" in rows[0][-1]
@@ -665,7 +684,14 @@ def test_write_node_data_reappearing_signature_single_call(bw):
     ext = part_ext(bw)
     if bw.file_format == "parquet":
         assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "id", "preferred_id", ":LABEL"]
-        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [
+            ":ID",
+            "name",
+            "diagnosis",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
     else:
         assert _headers(bw.outdir) == ["Patient-header.csv", "PatientGroup1-header.csv"]
     assert _parts(bw.outdir, "Patient") == [f"Patient-part000.{ext}"]
@@ -706,7 +732,14 @@ def test_write_node_data_reappearing_signature_across_calls(bw):
     ext = part_ext(bw)
     if bw.file_format == "parquet":
         assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "id", "preferred_id", ":LABEL"]
-        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [
+            ":ID",
+            "name",
+            "diagnosis",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
     else:
         assert _headers(bw.outdir) == ["Patient-header.csv", "PatientGroup1-header.csv"]
     # schema-1 group gained a second part file for the reappearing signature
@@ -729,7 +762,14 @@ def test_write_node_data_property_order_invariant_grouping(bw):
     assert bw._write_node_headers()
 
     if bw.file_format == "parquet":
-        assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "Patient")) == [
+            ":ID",
+            "name",
+            "diagnosis",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
     else:
         assert _headers(bw.outdir) == ["Patient-header.csv"]
 
@@ -748,7 +788,13 @@ def test_write_node_data_property_type_differences_split_groups(bw):
 
     if bw.file_format == "parquet":
         assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "age", "id", "preferred_id", ":LABEL"]
-        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [":ID", "age", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [
+            ":ID",
+            "age",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
     else:
         assert _headers(bw.outdir) == ["Patient-header.csv", "PatientGroup1-header.csv"]
         g0 = open(os.path.join(bw.outdir, "Patient-header.csv")).read()
@@ -771,8 +817,22 @@ def test_write_node_data_multiple_signatures_get_incrementing_groups(bw):
 
     if bw.file_format == "parquet":
         assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "id", "preferred_id", ":LABEL"]
-        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
-        assert get_parquet_column_names(part_path(bw, "PatientGroup2")) == [":ID", "name", "age", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [
+            ":ID",
+            "name",
+            "diagnosis",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
+        assert get_parquet_column_names(part_path(bw, "PatientGroup2")) == [
+            ":ID",
+            "name",
+            "age",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
     else:
         assert _headers(bw.outdir) == [
             "Patient-header.csv",
@@ -796,9 +856,23 @@ def test_write_node_data_grouping_independent_across_labels(bw):
 
     if bw.file_format == "parquet":
         assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "id", "preferred_id", ":LABEL"]
-        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [
+            ":ID",
+            "name",
+            "diagnosis",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
         assert get_parquet_column_names(part_path(bw, "Sample")) == [":ID", "tissue", "id", "preferred_id", ":LABEL"]
-        assert get_parquet_column_names(part_path(bw, "SampleGroup1")) == [":ID", "tissue", "quality", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "SampleGroup1")) == [
+            ":ID",
+            "tissue",
+            "quality",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
     else:
         assert _headers(bw.outdir) == [
             "Patient-header.csv",
@@ -858,7 +932,14 @@ def test_write_node_data_none_valued_properties_group_consistently(bw):
     assert bw._write_node_headers()
 
     if bw.file_format == "parquet":
-        assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "Patient")) == [
+            ":ID",
+            "name",
+            "diagnosis",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
     else:
         assert _headers(bw.outdir) == ["Patient-header.csv"]
         assert "diagnosis" in open(os.path.join(bw.outdir, "Patient-header.csv")).read()
@@ -905,7 +986,14 @@ def test_write_node_data_schema_change_between_writer_instances(bw, translator, 
 
     # batch 2's changed signature opened a new group instead of reusing Patient
     if bw.file_format == "parquet":
-        assert get_parquet_column_names(part_path(writer_2, "PatientGroup1")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(writer_2, "PatientGroup1")) == [
+            ":ID",
+            "name",
+            "diagnosis",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
     else:
         assert os.path.isfile(os.path.join(bw.outdir, "PatientGroup1-header.csv"))
         assert "diagnosis" in open(os.path.join(bw.outdir, "PatientGroup1-header.csv")).read()
@@ -1715,8 +1803,22 @@ def test_write_edge_data_headers_import_call(bw, _get_nodes, _get_edges):
         call = f.read()
 
     if bw.file_format == "parquet":
-        assert get_parquet_column_names(part_path(bw, "PERTURBED_IN_DISEASE")) == [":START_ID", "id", "residue", "level", ":END_ID", ":TYPE"]
-        assert get_parquet_column_names(part_path(bw, "Is_Mutated_In")) == [":START_ID", "id", "site", "confidence", ":END_ID", ":TYPE"]
+        assert get_parquet_column_names(part_path(bw, "PERTURBED_IN_DISEASE")) == [
+            ":START_ID",
+            "id",
+            "residue",
+            "level",
+            ":END_ID",
+            ":TYPE",
+        ]
+        assert get_parquet_column_names(part_path(bw, "Is_Mutated_In")) == [
+            ":START_ID",
+            "id",
+            "site",
+            "confidence",
+            ":END_ID",
+            ":TYPE",
+        ]
     else:
         perturbed_in_disease_csv = os.path.join(tmp_path, "PERTURBED_IN_DISEASE-header.csv")
         is_mutated_in_csv = os.path.join(tmp_path, "Is_Mutated_In-header.csv")
@@ -1887,10 +1989,20 @@ def test_write_mixed_edges(bw):
 
     if bw.file_format == "parquet":
         assert passed
-        assert get_parquet_column_names(part_path(bw, "PostTranslationalInteraction")) == [":ID", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PostTranslationalInteraction")) == [
+            ":ID",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
         assert get_parquet_column_names(part_path(bw, "IS_SOURCE_OF")) == [":START_ID", ":END_ID", ":TYPE"]
         assert get_parquet_column_names(part_path(bw, "IS_TARGET_OF")) == [":START_ID", ":END_ID", ":TYPE"]
-        assert get_parquet_column_names(part_path(bw, "PERTURBED_IN_DISEASE")) == [":START_ID", "id", ":END_ID", ":TYPE"]
+        assert get_parquet_column_names(part_path(bw, "PERTURBED_IN_DISEASE")) == [
+            ":START_ID",
+            "id",
+            ":END_ID",
+            ":TYPE",
+        ]
     else:
         post_translational_interaction_csv = os.path.join(tmp_path, "PostTranslationalInteraction-header.csv")
         is_source_of_csv = os.path.join(tmp_path, "IS_SOURCE_OF-header.csv")
