@@ -414,7 +414,7 @@ class _BatchWriter(_Writer, ABC):
 
         return delimiter, delimiter
 
-    def _get_node_table_column_names(self, prop_dict: dict):
+    def _get_node_table_column_names(self, label: str, prop_dict: dict):
         """Return target-specific column names for a node data table.
 
         Subclasses use this to provide either header fields or column names,
@@ -422,6 +422,8 @@ class _BatchWriter(_Writer, ABC):
 
         Args:
         ----
+            label (str): the primary (ontology) label of the node
+
             prop_dict (dict): Mapping of property names to their declared
                 data types.
 
@@ -433,7 +435,7 @@ class _BatchWriter(_Writer, ABC):
         """
         return
 
-    def _get_edge_table_column_names(self, prop_dict: dict):
+    def _get_edge_table_column_names(self, label: str, prop_dict: dict):
         """Return target-specific column names for an edge data table.
 
         Subclasses use this to provide either header fields or column names,
@@ -441,6 +443,8 @@ class _BatchWriter(_Writer, ABC):
 
         Args:
         ----
+            label (str): the primary (ontology) label of the node
+
             prop_dict (dict): Mapping of property names to their declared
                 data types.
 
@@ -1000,7 +1004,7 @@ class _BatchWriter(_Writer, ABC):
 
         # avoid writing empty files
         if rows:
-            self._write_next_part(label, rows, self._get_node_table_column_names(prop_dict))
+            self._write_next_part(label, rows, self._get_node_table_column_names(label, prop_dict))
 
         return True
 
@@ -1325,7 +1329,7 @@ class _BatchWriter(_Writer, ABC):
 
         # avoid writing empty files
         if rows:
-            self._write_next_part(label, rows, self._get_edge_table_column_names(prop_dict))
+            self._write_next_part(label, rows, self._get_edge_table_column_names(label, prop_dict))
 
         return True
 

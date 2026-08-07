@@ -87,7 +87,7 @@ class _Neo4jBatchWriter(_BatchWriter):
 
         self.shell = shell
 
-    def _get_node_table_column_names(self, prop_dict: dict):
+    def _get_node_table_column_names(self, label: str, prop_dict: dict):
         if self.file_format == "parquet":
             props_list = list(prop_dict)
         else:
@@ -115,7 +115,7 @@ class _Neo4jBatchWriter(_BatchWriter):
 
         return out_list
 
-    def _get_edge_table_column_names(self, prop_dict: dict):
+    def _get_edge_table_column_names(self, label: str, prop_dict: dict):
         if self.file_format == "parquet":
             props_list = list(prop_dict)
         else:
@@ -249,7 +249,7 @@ class _Neo4jBatchWriter(_BatchWriter):
                         f"Header file `{header_path}` already exists. Overwriting.",
                     )
 
-                out_list = self._get_node_table_column_names(props)
+                out_list = self._get_node_table_column_names(label, props)
 
                 with open(header_path, "w", encoding="utf-8") as f:
                     # concatenate with delimiter
@@ -307,7 +307,7 @@ class _Neo4jBatchWriter(_BatchWriter):
                 if os.path.exists(header_path):
                     logger.warning(f"File {header_path} already exists. Overwriting.")
 
-                out_list = self._get_edge_table_column_names(props)
+                out_list = self._get_edge_table_column_names(label, props)
 
                 with open(header_path, "w", encoding="utf-8") as f:
                     # concatenate with delimiter
@@ -540,11 +540,11 @@ class _Neo4jBatchWriter(_BatchWriter):
         import_call.append("--skip-duplicate-nodes=true " if self.skip_duplicate_nodes else "")
         import_call.append(f"{self.import_call_additional_options} " if self.import_call_additional_options else "")
         import_call.extend(
-            f'--nodes="{header_path + "," if header_path else ""},{parts_path}" '
+            f'--nodes="{header_path + "," if header_path else ""}{parts_path}" '
             for header_path, parts_path in self.import_call_nodes
         )
         import_call.extend(
-            f'--relationships="{header_path + "," if header_path else ""},{parts_path}" '
+            f'--relationships="{header_path + "," if header_path else ""}{parts_path}" '
             for header_path, parts_path in self.import_call_edges
         )
 
