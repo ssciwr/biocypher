@@ -487,15 +487,15 @@ class _Neo4jBatchWriter(_BatchWriter):
 
         if self.file_format == "parquet":
             import_call += '--input-type="parquet" '
-
-        import_call += f'--delimiter="{self.escaped_delim}" '
-
-        import_call += f'--array-delimiter="{self.escaped_adelim}" '
-
-        if self.quote == "'":
-            import_call += f'--quote="{self.quote}" '
         else:
-            import_call += f"--quote='{self.quote}' "
+            import_call += f'--delimiter="{self.escaped_delim}" '
+
+            import_call += f'--array-delimiter="{self.escaped_adelim}" '
+
+            if self.quote == "'":
+                import_call += f'--quote="{self.quote}" '
+            else:
+                import_call += f"--quote='{self.quote}' "
 
         if self.wipe:
             import_call += f"{wipe_cmd}true "
@@ -535,9 +535,10 @@ class _Neo4jBatchWriter(_BatchWriter):
         import_call.append(f"{database_cmd}{self.db_name} ")
         if self.file_format == "parquet":
             import_call.append('--input-type="parquet" ')
-        import_call.append(f'--delimiter="{self.escaped_delim}" ')
-        import_call.append(f'--array-delimiter="{self.escaped_adelim}" ')
-        import_call.append(f'--quote="{self.quote}" ' if self.quote == "'" else f"--quote='{self.quote}' ")
+        else:
+            import_call.append(f'--delimiter="{self.escaped_delim}" ')
+            import_call.append(f'--array-delimiter="{self.escaped_adelim}" ')
+            import_call.append(f'--quote="{self.quote}" ' if self.quote == "'" else f"--quote='{self.quote}' ")
         import_call.append(f"{wipe_cmd}true " if self.wipe else "")
         import_call.append("--skip-bad-relationships=true " if self.skip_bad_relationships else "")
         import_call.append("--skip-duplicate-nodes=true " if self.skip_duplicate_nodes else "")
