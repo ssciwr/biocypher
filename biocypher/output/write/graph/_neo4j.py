@@ -65,6 +65,10 @@ class _Neo4jBatchWriter(_BatchWriter):
                 logger.error(msg, exc_info=exc)
                 raise
 
+            self.delim, self.escaped_delim = self._process_delimiter(",")
+            self.adelim, self.escaped_adelim = self._process_delimiter(";")
+            self.quote = '"'
+
             msg = (
                 "The default output format for Neo4j offline mode has been changed to Parquet. "
                 "Importing it requires Neo4j 5.26.26 or later on the 5.26 LTS line, or any "
