@@ -68,13 +68,10 @@ def test_write_schema_info_as_node(core, _get_nodes):
 
     schema = core.write_schema_info(as_node=True)
 
-    header_path = os.path.join(core._output_directory, "Schema_info-header.csv")
-    assert os.path.exists(header_path)
     schema_path = os.path.join(core._output_directory, "Schema_info-part000.parquet")
     assert os.path.exists(schema_path)
 
-    with open(header_path) as f:
-        schema_header = f.read()
+    schema_header = pq.read_table(schema_path).column_names
 
     assert "schema_info" in schema_header
 

@@ -984,9 +984,10 @@ def test_write_node_data_schema_change_between_writer_instances(bw, translator, 
     )
     assert writer_2._write_node_headers()
 
-    # batch 2's changed signature opened a new group instead of reusing Patient
+
     if bw.file_format == "parquet":
-        assert get_parquet_column_names(part_path(writer_2, "PatientGroup1")) == [
+        # Parquet files have individual schema, a new group is not needed
+        assert get_parquet_column_names(part_path(writer_2, "Patient", 1)) == [
             ":ID",
             "name",
             "diagnosis",
@@ -995,6 +996,7 @@ def test_write_node_data_schema_change_between_writer_instances(bw, translator, 
             ":LABEL",
         ]
     else:
+        # batch 2's changed signature opened a new group instead of reusing Patient
         assert os.path.isfile(os.path.join(bw.outdir, "PatientGroup1-header.csv"))
         assert "diagnosis" in open(os.path.join(bw.outdir, "PatientGroup1-header.csv")).read()
 
