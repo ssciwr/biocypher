@@ -984,7 +984,6 @@ def test_write_node_data_schema_change_between_writer_instances(bw, translator, 
     )
     assert writer_2._write_node_headers()
 
-
     if bw.file_format == "parquet":
         # Parquet files have individual schema, a new group is not needed
         assert get_parquet_column_names(part_path(writer_2, "Patient", 1)) == [
