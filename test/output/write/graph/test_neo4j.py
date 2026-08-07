@@ -72,7 +72,9 @@ def n_header_cols(header_path, delim=";"):
 def test_neo4j_writer_and_output_dir(bw):
     tmp_path = bw.outdir
 
-    assert os.path.isdir(tmp_path) and isinstance(bw, _Neo4jBatchWriter) and bw.delim == ";"
+    assert os.path.isdir(tmp_path) and isinstance(bw, _Neo4jBatchWriter)
+    if bw.file_format == "csv":
+        assert bw.delim == ";"
 
 
 def test_create_import_call(bw):
@@ -114,8 +116,9 @@ def test_create_import_call(bw):
     assert passed
     assert "neo4j-admin" in call
     assert "import" in call
-    assert '--delimiter=";"' in call
-    assert '--array-delimiter="|" --quote="\'"' in call
+    if bw.file_format == "csv":
+        assert '--delimiter=";"' in call
+        assert '--array-delimiter="|" --quote="\'"' in call
     if bw.file_format == "parquet":
         assert get_parquet_column_names(part_path(bw, "PostTranslationalInteraction")) == [
             ":ID",
@@ -188,7 +191,8 @@ def test_neo4j_write_node_data_headers_import_call(bw, _get_nodes):
         assert micro_rna_header == ":ID;name;taxon:long;id;preferred_id;:LABEL"
     assert "neo4j-admin" in call
     assert "import" in call
-    assert '--delimiter=";"' in call
+    if bw.file_format == "csv":
+        assert '--delimiter=";"' in call
     assert '--nodes="' in call
     if bw.file_format == "parquet":
         assert "-header.csv" not in call
@@ -569,12 +573,12 @@ def test_write_node_data_non_string_list_properties(bw):
     # Verify that the inferred types in node_property_dict use "int[]" / "float[]"
     # rather than the bare "list" that type(v).__name__ would previously return.
     prop_types = bw.node_property_dict.get("post translational interaction", {})
-    assert (
-        prop_types.get("scores") == "int[]"
-    ), f"Expected 'int[]' but got {prop_types.get('scores')!r}; list type inference is broken"
-    assert (
-        prop_types.get("weights") == "float[]"
-    ), f"Expected 'float[]' but got {prop_types.get('weights')!r}; list type inference is broken"
+    assert prop_types.get("scores") == "int[]", (
+        f"Expected 'int[]' but got {prop_types.get('scores')!r}; list type inference is broken"
+    )
+    assert prop_types.get("weights") == "float[]", (
+        f"Expected 'float[]' but got {prop_types.get('weights')!r}; list type inference is broken"
+    )
 
 
 def test_write_node_data_varying_properties_splits_groups(bw):
@@ -638,7 +642,8 @@ def test_write_node_data_varying_properties_splits_groups(bw):
 
 def test_write_node_data_homogeneous_properties_single_group(bw):
     """Homogeneous input (the common case) must still produce exactly one group
-    with the legacy file names — no behavioural change without divergence."""
+    with the legacy file names — no behavioural change without divergence.
+    """
     patients = [
         BioCypherNode("p1", "patient", properties={"name": "Alice"}),
         BioCypherNode("p2", "patient", properties={"name": "Bob"}),
@@ -752,7 +757,8 @@ def test_write_node_data_reappearing_signature_across_calls(bw):
 
 def test_write_node_data_property_order_invariant_grouping(bw):
     """Two patients with the same properties in different insertion order must
-    share a single group (the signature is order-invariant)."""
+    share a single group (the signature is order-invariant).
+    """
     patients = [
         BioCypherNode("p1", "patient", properties={"name": "Alice", "diagnosis": "flu"}),
         BioCypherNode("p2", "patient", properties={"diagnosis": "cold", "name": "Bob"}),
@@ -777,7 +783,8 @@ def test_write_node_data_property_order_invariant_grouping(bw):
 def test_write_node_data_property_type_differences_split_groups(bw):
     """Patients with the same property *names* but different value *types* are
     split into separate groups, because their CSV headers differ (e.g.
-    ``age:long`` vs an untyped string ``age``)."""
+    ``age:long`` vs an untyped string ``age``).
+    """
     patients = [
         BioCypherNode("p1", "patient", properties={"age": 42}),  # int -> age:long
         BioCypherNode("p2", "patient", properties={"age": "forty"}),  # str -> age
@@ -805,7 +812,8 @@ def test_write_node_data_property_type_differences_split_groups(bw):
 
 def test_write_node_data_multiple_signatures_get_incrementing_groups(bw):
     """Three distinct signatures produce the legacy group plus two suffixed
-    groups with incrementing indices."""
+    groups with incrementing indices.
+    """
     patients = [
         BioCypherNode("p1", "patient", properties={"name": "Alice"}),
         BioCypherNode("p2", "patient", properties={"name": "Bob", "diagnosis": "diabetes"}),
@@ -843,7 +851,8 @@ def test_write_node_data_multiple_signatures_get_incrementing_groups(bw):
 
 def test_write_node_data_grouping_independent_across_labels(bw):
     """Signature grouping is per label; divergence in one label does not affect
-    another, and the suffixed file names do not collide."""
+    another, and the suffixed file names do not collide.
+    """
     nodes = [
         BioCypherNode("p1", "patient", properties={"name": "Alice"}),
         BioCypherNode("p2", "patient", properties={"name": "Bob", "diagnosis": "diabetes"}),
@@ -905,7 +914,8 @@ def test_write_node_data_group_uses_real_label_not_group_key(bw):
 def test_write_node_data_small_batch_size_flushes_per_group(bw):
     """Batch size is an IO guard applied per group: three same-signature
     patients with batch_size=2 flush a full part at the threshold and the
-    remainder at the end, yielding two part files in one group."""
+    remainder at the end, yielding two part files in one group.
+    """
     patients = [BioCypherNode(f"p{i}", "patient", properties={"name": f"n{i}"}) for i in range(3)]
 
     assert bw._write_node_data(patients, batch_size=2, force=True)
@@ -922,7 +932,8 @@ def test_write_node_data_small_batch_size_flushes_per_group(bw):
 def test_write_node_data_none_valued_properties_group_consistently(bw):
     """Edge case: a property that is consistently ``None`` does not raise (the
     signature sort never compares ``None`` against a type string, since keys are
-    unique) and yields a single group with the property present as a column."""
+    unique) and yields a single group with the property present as a column.
+    """
     patients = [
         BioCypherNode("p1", "patient", properties={"name": "Alice", "diagnosis": None}),
         BioCypherNode("p2", "patient", properties={"name": "Bob", "diagnosis": None}),
@@ -1761,12 +1772,12 @@ def test_write_edge_data_non_string_list_properties(bw):
 
     # Type inference should work for both formats
     prop_types = bw.edge_property_dict.get("phosphorylation", {})
-    assert (
-        prop_types.get("sites") == "str[]"
-    ), f"Expected 'str[]' but got {prop_types.get('sites')!r}; list type inference is broken for edges"
-    assert (
-        prop_types.get("scores") == "float[]"
-    ), f"Expected 'float[]' but got {prop_types.get('scores')!r}; list type inference is broken for edges"
+    assert prop_types.get("sites") == "str[]", (
+        f"Expected 'str[]' but got {prop_types.get('sites')!r}; list type inference is broken for edges"
+    )
+    assert prop_types.get("scores") == "float[]", (
+        f"Expected 'float[]' but got {prop_types.get('scores')!r}; list type inference is broken for edges"
+    )
 
 
 @pytest.mark.parametrize("length", [8], scope="module")
@@ -1832,7 +1843,8 @@ def test_write_edge_data_headers_import_call(bw, _get_nodes, _get_edges):
 
     assert "neo4j-admin" in call
     assert "import" in call
-    assert '--delimiter=";"' in call
+    if bw.file_format == "csv":
+        assert '--delimiter=";"' in call
     assert '--nodes="' in call
     assert "PERTURBED_IN_DISEASE" in call
     assert "Is_Mutated_In" in call
@@ -2199,7 +2211,8 @@ def test_tab_delimiter(bw_tab, _get_nodes):
 
     call = bw_tab._construct_import_call()
 
-    assert '--delimiter="\\t"' in call
+    if bw_tab.file_format == "csv":
+        assert '--delimiter="\\t"' in call
 
 
 def test_check_label_name():
@@ -2247,7 +2260,7 @@ def make_labels(bw, order):
         parquet_data = get_parquet_content_as_rows(f_parquet)
         label_strings = parquet_data[0][-1]
         if isinstance(label_strings, str):
-            lbls = [i.strip("'") for i in label_strings.split("|")]
+            lbls = label_strings.split(";")
             if lbls:
                 labels.append(lbls)
     else:
@@ -2380,12 +2393,12 @@ def test_edge_labels_order_fallback_log_message(caplog, translator, deduplicator
             edge_labels_order="None",
         )
     messages = [r.message for r in caplog.records]
-    assert any(
-        "`edge_labels_order` set to `labels_order`=`Descending`" in msg for msg in messages
-    ), f"Expected edge_labels_order fallback log, got: {messages}"
-    assert not any(
-        "`node_labels_order` set to `labels_order`=`Descending`" in msg for msg in messages
-    ), f"node_labels_order appeared in edge fallback log: {messages}"
+    assert any("`edge_labels_order` set to `labels_order`=`Descending`" in msg for msg in messages), (
+        f"Expected edge_labels_order fallback log, got: {messages}"
+    )
+    assert not any("`node_labels_order` set to `labels_order`=`Descending`" in msg for msg in messages), (
+        f"node_labels_order appeared in edge fallback log: {messages}"
+    )
 
 
 def test_quote_escaped_in_node_string_property(bw_csv):
@@ -2417,7 +2430,8 @@ def test_quote_escaped_in_node_string_property(bw_csv):
     assert passed
     assert "'O''Brien'" in content, f"Escaped quote not found in: {content!r}"
     assert "'O'Brien'" not in content.replace(
-        "'O''Brien'", ""
+        "'O''Brien'",
+        "",
     ), "Unescaped quote found in output — _quote_string not called for node properties"
 
 
@@ -2449,7 +2463,8 @@ def test_quote_escaped_in_edge_string_property(bw_csv):
 
 def test_check_labels_order_none_raises_string_error(bw):
     """_check_labels_order must raise ValueError with a plain-string message when
-    a labels_order attribute is None, not a one-element tuple."""
+    a labels_order attribute is None, not a one-element tuple.
+    """
     bw.node_labels_order = None
     with pytest.raises(ValueError) as exc_info:
         bw._check_labels_order()
@@ -2459,7 +2474,8 @@ def test_check_labels_order_none_raises_string_error(bw):
 
 def test_check_labels_order_invalid_raises_string_error(bw):
     """_check_labels_order must raise ValueError with a plain-string message when
-    a labels_order attribute has an invalid value, not a one-element tuple."""
+    a labels_order attribute has an invalid value, not a one-element tuple.
+    """
     bw.node_labels_order = "Ascending"  # restore from previous test if needed
     bw.edge_labels_order = "BadOrder"
     with pytest.raises(ValueError) as exc_info:
