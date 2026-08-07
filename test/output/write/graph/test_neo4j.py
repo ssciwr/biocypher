@@ -25,6 +25,11 @@ def get_parquet_content_as_rows(file_path):
     return [tuple(row.values()) for row in table.to_pylist()]
 
 
+def get_parquet_column_names(file_path):
+    """Return column names from a Parquet file."""
+    return pq.read_table(file_path).column_names
+
+
 def part_ext(bw):
     """Return the data part file extension for the writer's output format."""
     return "parquet" if bw.file_format == "parquet" else "csv"
@@ -111,20 +116,27 @@ def test_create_import_call(bw):
     assert "import" in call
     assert '--delimiter=";"' in call
     assert '--array-delimiter="|" --quote="\'"' in call
-    assert (
-        f'--nodes="{tmp_path}{os.sep}PostTranslationalInteraction-header.csv,'
-        f'{tmp_path}{os.sep}PostTranslationalInteraction-part.*" '
-    ) in call
-    assert (
-        f'--relationships="{tmp_path}{os.sep}IS_SOURCE_OF-header.csv,{tmp_path}{os.sep}IS_SOURCE_OF-part.*" '
-    ) in call
-    assert (
-        f'--relationships="{tmp_path}{os.sep}IS_TARGET_OF-header.csv,{tmp_path}{os.sep}IS_TARGET_OF-part.*" '
-    ) in call
-    assert (
-        f'--relationships="{tmp_path}{os.sep}PERTURBED_IN_DISEASE-header.csv,'
-        f'{tmp_path}{os.sep}PERTURBED_IN_DISEASE-part.*" '
-    ) in call
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(part_path(bw, "PostTranslationalInteraction")) == [":ID", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "IS_SOURCE_OF")) == [":START_ID", ":END_ID", ":TYPE"]
+        assert get_parquet_column_names(part_path(bw, "IS_TARGET_OF")) == [":START_ID", ":END_ID", ":TYPE"]
+        assert get_parquet_column_names(part_path(bw, "PERTURBED_IN_DISEASE")) == [":START_ID", "id", ":END_ID", ":TYPE"]
+        assert "-header.csv" not in call
+    else:
+        assert (
+            f'--nodes="{tmp_path}{os.sep}PostTranslationalInteraction-header.csv,'
+            f'{tmp_path}{os.sep}PostTranslationalInteraction-part.*" '
+        ) in call
+        assert (
+            f'--relationships="{tmp_path}{os.sep}IS_SOURCE_OF-header.csv,{tmp_path}{os.sep}IS_SOURCE_OF-part.*" '
+        ) in call
+        assert (
+            f'--relationships="{tmp_path}{os.sep}IS_TARGET_OF-header.csv,{tmp_path}{os.sep}IS_TARGET_OF-part.*" '
+        ) in call
+        assert (
+            f'--relationships="{tmp_path}{os.sep}PERTURBED_IN_DISEASE-header.csv,'
+            f'{tmp_path}{os.sep}PERTURBED_IN_DISEASE-part.*" '
+        ) in call
 
 
 @pytest.mark.parametrize("length", [4], scope="module")
@@ -149,26 +161,34 @@ def test_neo4j_write_node_data_headers_import_call(bw, _get_nodes):
     else:
         import_call_path = os.path.join(tmp_path, "neo4j-admin-import-call.sh")
 
-    with open(protein_header_csv) as f:
-        protein_header = f.read()
-    with open(micro_rna_header_csv) as f:
-        micro_rna_header = f.read()
     with open(import_call_path) as f:
         call = f.read()
 
     if bw.file_format == "parquet":
-        assert protein_header == ":ID;name;score:double;taxon:long;genes;id;preferred_id;:LABEL"
+        protein_columns = get_parquet_column_names(part_path(bw, "Protein"))
+        micro_rna_columns = get_parquet_column_names(part_path(bw, "MicroRNA"))
+        assert protein_columns == [":ID", "name", "score", "taxon", "genes", "id", "preferred_id", ":LABEL"]
+        assert micro_rna_columns == [":ID", "name", "taxon", "id", "preferred_id", ":LABEL"]
     else:
+        with open(protein_header_csv) as f:
+            protein_header = f.read()
+        with open(micro_rna_header_csv) as f:
+            micro_rna_header = f.read()
         assert protein_header == ":ID;name;score:double;taxon:long;genes:string[];id;preferred_id;:LABEL"
-    assert micro_rna_header == ":ID;name;taxon:long;id;preferred_id;:LABEL"
+        assert micro_rna_header == ":ID;name;taxon:long;id;preferred_id;:LABEL"
     assert "neo4j-admin" in call
     assert "import" in call
     assert '--delimiter=";"' in call
     assert '--nodes="' in call
-    assert "Protein-header.csv" in call
-    assert 'Protein-part.*"' in call
-    assert "MicroRNA-header.csv" in call
-    assert 'MicroRNA-part.*"' in call
+    if bw.file_format == "parquet":
+        assert "-header.csv" not in call
+        assert 'Protein-part.*"' in call
+        assert 'MicroRNA-part.*"' in call
+    else:
+        assert "Protein-header.csv" in call
+        assert 'Protein-part.*"' in call
+        assert "MicroRNA-header.csv" in call
+        assert 'MicroRNA-part.*"' in call
 
     # custom import call executable path
     bw.import_call_bin_prefix = "custom/path/"
@@ -308,17 +328,16 @@ def test_write_hybrid_ontology_nodes(bw):
         else "AlteredGeneProductLevel-part000.parquet",
     )
 
-    with open(header_csv) as f:
-        header = f.read()
-
-    assert header == ":ID;id;preferred_id;:LABEL"
-
     if bw.file_format == "parquet":
+        assert get_parquet_column_names(data_file) == [":ID", "id", "preferred_id", ":LABEL"]
         rows = get_parquet_content_as_rows(data_file)
         assert rows[0][:-1] == ("agpl:0000", "agpl:0000", "id")
         assert "AlteredGeneProductLevel" in rows[0][-1]
         assert "BiologicalEntity" in rows[0][-1]
     else:
+        with open(header_csv) as f:
+            header = f.read()
+        assert header == ":ID;id;preferred_id;:LABEL"
         with open(data_file) as f:
             part = f.read()
 
@@ -388,6 +407,7 @@ def test_property_types(bw):
     assert passed
 
     if bw.file_format == "parquet":
+        assert get_parquet_column_names(data_csv) == [":ID", "name", "score", "taxon", "genes", "id", "preferred_id", ":LABEL"]
         rows = get_parquet_content_as_rows(data_csv)
         assert rows[0][:-1] == ("p1", "StringProperty1", 4.0, 9606, ["gene1", "gene2"], "p1", "id")
         assert "BiologicalEntity" in rows[0][-1]
@@ -560,24 +580,26 @@ def test_write_node_data_varying_properties_splits_groups(bw):
     call = bw.get_import_call()
 
     # group 0 keeps the legacy names; group 1 gets a suffixed name
-    g0_header = os.path.join(bw.outdir, "Patient-header.csv")
     g0_part = part_path(bw, "Patient")
-    g1_header = os.path.join(bw.outdir, "PatientGroup1-header.csv")
     g1_part = part_path(bw, "PatientGroup1")
 
-    for p in (g0_header, g0_part, g1_header, g1_part):
+    for p in (g0_part, g1_part):
         assert os.path.isfile(p), f"missing expected output file {p}"
 
-    g0_header_txt = open(g0_header).read()
-    g1_header_txt = open(g1_header).read()
-
-    # only the second signature carries 'diagnosis'
-    assert "diagnosis" not in g0_header_txt
-    assert "diagnosis" in g1_header_txt
-
-    # each part file has the same number of columns as its header
-    assert n_part_cols(bw, g0_part) == n_header_cols(g0_header)
-    assert n_part_cols(bw, g1_part) == n_header_cols(g1_header)
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(g0_part) == [":ID", "name", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(g1_part) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+    else:
+        g0_header = os.path.join(bw.outdir, "Patient-header.csv")
+        g1_header = os.path.join(bw.outdir, "PatientGroup1-header.csv")
+        for p in (g0_header, g1_header):
+            assert os.path.isfile(p), f"missing expected output file {p}"
+        g0_header_txt = open(g0_header).read()
+        g1_header_txt = open(g1_header).read()
+        assert "diagnosis" not in g0_header_txt
+        assert "diagnosis" in g1_header_txt
+        assert n_part_cols(bw, g0_part) == n_header_cols(g0_header)
+        assert n_part_cols(bw, g1_part) == n_header_cols(g1_header)
 
     # patients are routed to the group matching their property set
     assert "Carol" in part_text(bw, g1_part)
@@ -586,8 +608,13 @@ def test_write_node_data_varying_properties_splits_groups(bw):
     assert "Bob" in g0_part_txt
 
     # the import call references both groups for the same label
-    assert "Patient-header.csv" in call
-    assert "PatientGroup1-header.csv" in call
+    if bw.file_format == "parquet":
+        assert "-header.csv" not in call
+        assert "Patient-part.*" in call
+        assert "PatientGroup1-part.*" in call
+    else:
+        assert "Patient-header.csv" in call
+        assert "PatientGroup1-header.csv" in call
 
 
 def test_write_node_data_homogeneous_properties_single_group(bw):
@@ -601,7 +628,10 @@ def test_write_node_data_homogeneous_properties_single_group(bw):
     assert bw._write_node_data(patients, batch_size=int(1e4), force=True)
     assert bw._write_node_headers()
 
-    assert os.path.isfile(os.path.join(bw.outdir, "Patient-header.csv"))
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "id", "preferred_id", ":LABEL"]
+    else:
+        assert os.path.isfile(os.path.join(bw.outdir, "Patient-header.csv"))
     # no suffixed group files were created
     suffixed = [f for f in os.listdir(bw.outdir) if f.startswith("PatientGroup")]
     assert suffixed == []
@@ -633,7 +663,11 @@ def test_write_node_data_reappearing_signature_single_call(bw):
 
     # exactly two groups, not three
     ext = part_ext(bw)
-    assert _headers(bw.outdir) == ["Patient-header.csv", "PatientGroup1-header.csv"]
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+    else:
+        assert _headers(bw.outdir) == ["Patient-header.csv", "PatientGroup1-header.csv"]
     assert _parts(bw.outdir, "Patient") == [f"Patient-part000.{ext}"]
     assert _parts(bw.outdir, "PatientGroup1") == [f"PatientGroup1-part000.{ext}"]
 
@@ -670,7 +704,11 @@ def test_write_node_data_reappearing_signature_across_calls(bw):
     assert bw._write_node_headers()
 
     ext = part_ext(bw)
-    assert _headers(bw.outdir) == ["Patient-header.csv", "PatientGroup1-header.csv"]
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+    else:
+        assert _headers(bw.outdir) == ["Patient-header.csv", "PatientGroup1-header.csv"]
     # schema-1 group gained a second part file for the reappearing signature
     assert _parts(bw.outdir, "Patient") == [f"Patient-part000.{ext}", f"Patient-part001.{ext}"]
     assert _parts(bw.outdir, "PatientGroup1") == [f"PatientGroup1-part000.{ext}"]
@@ -690,7 +728,10 @@ def test_write_node_data_property_order_invariant_grouping(bw):
     assert bw._write_node_data(patients, batch_size=int(1e4), force=True)
     assert bw._write_node_headers()
 
-    assert _headers(bw.outdir) == ["Patient-header.csv"]
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+    else:
+        assert _headers(bw.outdir) == ["Patient-header.csv"]
 
 
 def test_write_node_data_property_type_differences_split_groups(bw):
@@ -705,11 +746,15 @@ def test_write_node_data_property_type_differences_split_groups(bw):
     assert bw._write_node_data(patients, batch_size=int(1e4), force=True)
     assert bw._write_node_headers()
 
-    assert _headers(bw.outdir) == ["Patient-header.csv", "PatientGroup1-header.csv"]
-    g0 = open(os.path.join(bw.outdir, "Patient-header.csv")).read()
-    g1 = open(os.path.join(bw.outdir, "PatientGroup1-header.csv")).read()
-    assert "age:long" in g0
-    assert "age:long" not in g1
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "age", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [":ID", "age", "id", "preferred_id", ":LABEL"]
+    else:
+        assert _headers(bw.outdir) == ["Patient-header.csv", "PatientGroup1-header.csv"]
+        g0 = open(os.path.join(bw.outdir, "Patient-header.csv")).read()
+        g1 = open(os.path.join(bw.outdir, "PatientGroup1-header.csv")).read()
+        assert "age:long" in g0
+        assert "age:long" not in g1
 
 
 def test_write_node_data_multiple_signatures_get_incrementing_groups(bw):
@@ -724,11 +769,16 @@ def test_write_node_data_multiple_signatures_get_incrementing_groups(bw):
     assert bw._write_node_data(patients, batch_size=int(1e4), force=True)
     assert bw._write_node_headers()
 
-    assert _headers(bw.outdir) == [
-        "Patient-header.csv",
-        "PatientGroup1-header.csv",
-        "PatientGroup2-header.csv",
-    ]
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PatientGroup2")) == [":ID", "name", "age", "id", "preferred_id", ":LABEL"]
+    else:
+        assert _headers(bw.outdir) == [
+            "Patient-header.csv",
+            "PatientGroup1-header.csv",
+            "PatientGroup2-header.csv",
+        ]
 
 
 def test_write_node_data_grouping_independent_across_labels(bw):
@@ -744,12 +794,18 @@ def test_write_node_data_grouping_independent_across_labels(bw):
     assert bw._write_node_data(nodes, batch_size=int(1e4), force=True)
     assert bw._write_node_headers()
 
-    assert _headers(bw.outdir) == [
-        "Patient-header.csv",
-        "PatientGroup1-header.csv",
-        "Sample-header.csv",
-        "SampleGroup1-header.csv",
-    ]
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "PatientGroup1")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "Sample")) == [":ID", "tissue", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "SampleGroup1")) == [":ID", "tissue", "quality", "id", "preferred_id", ":LABEL"]
+    else:
+        assert _headers(bw.outdir) == [
+            "Patient-header.csv",
+            "PatientGroup1-header.csv",
+            "Sample-header.csv",
+            "SampleGroup1-header.csv",
+        ]
 
 
 def test_write_node_data_group_uses_real_label_not_group_key(bw):
@@ -782,7 +838,10 @@ def test_write_node_data_small_batch_size_flushes_per_group(bw):
     assert bw._write_node_headers()
 
     ext = part_ext(bw)
-    assert _headers(bw.outdir) == ["Patient-header.csv"]
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "id", "preferred_id", ":LABEL"]
+    else:
+        assert _headers(bw.outdir) == ["Patient-header.csv"]
     assert _parts(bw.outdir, "Patient") == [f"Patient-part000.{ext}", f"Patient-part001.{ext}"]
 
 
@@ -798,8 +857,11 @@ def test_write_node_data_none_valued_properties_group_consistently(bw):
     assert bw._write_node_data(patients, batch_size=int(1e4), force=True)
     assert bw._write_node_headers()
 
-    assert _headers(bw.outdir) == ["Patient-header.csv"]
-    assert "diagnosis" in open(os.path.join(bw.outdir, "Patient-header.csv")).read()
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(part_path(bw, "Patient")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+    else:
+        assert _headers(bw.outdir) == ["Patient-header.csv"]
+        assert "diagnosis" in open(os.path.join(bw.outdir, "Patient-header.csv")).read()
 
 
 def test_write_node_data_schema_change_between_writer_instances(bw, translator, deduplicator, tmp_path_session):
@@ -819,7 +881,10 @@ def test_write_node_data_schema_change_between_writer_instances(bw, translator, 
     )
     assert bw._write_node_headers()
     g0_header = os.path.join(bw.outdir, "Patient-header.csv")
-    n_cols_batch_1 = n_header_cols(g0_header)
+    if bw.file_format == "parquet":
+        n_cols_batch_1 = len(get_parquet_column_names(part_path(bw, "Patient")))
+    else:
+        n_cols_batch_1 = n_header_cols(g0_header)
 
     # batch 2: fresh writer, same output dir, {name, diagnosis}
     writer_2 = _Neo4jBatchWriter(
@@ -839,16 +904,24 @@ def test_write_node_data_schema_change_between_writer_instances(bw, translator, 
     assert writer_2._write_node_headers()
 
     # batch 2's changed signature opened a new group instead of reusing Patient
-    assert os.path.isfile(os.path.join(bw.outdir, "PatientGroup1-header.csv"))
-    assert "diagnosis" in open(os.path.join(bw.outdir, "PatientGroup1-header.csv")).read()
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(part_path(writer_2, "PatientGroup1")) == [":ID", "name", "diagnosis", "id", "preferred_id", ":LABEL"]
+    else:
+        assert os.path.isfile(os.path.join(bw.outdir, "PatientGroup1-header.csv"))
+        assert "diagnosis" in open(os.path.join(bw.outdir, "PatientGroup1-header.csv")).read()
 
     # batch 1's header was left untouched and still matches its part file
-    n_cols_header_now = n_header_cols(g0_header)
     part_0 = part_path(bw, "Patient")
     n_cols_part_0 = n_part_cols(bw, part_0)
+    if bw.file_format == "parquet":
+        g0_columns = get_parquet_column_names(part_0)
+        n_cols_header_now = len(g0_columns)
+        assert "diagnosis" not in g0_columns
+    else:
+        n_cols_header_now = n_header_cols(g0_header)
+        assert "diagnosis" not in open(g0_header).read()
     assert n_cols_header_now == n_cols_batch_1
     assert n_cols_part_0 == n_cols_header_now
-    assert "diagnosis" not in open(g0_header).read()
 
 
 @pytest.mark.parametrize("length", [4], scope="module")
@@ -1178,22 +1251,16 @@ def test_accidental_exact_batch_size(bw, _get_nodes):
     if bw.file_format == "parquet":
         protein_0_rows = get_parquet_content_as_rows(os.path.join(tmp_path, "Protein-part000.parquet"))
         micro_rna_0_rows = get_parquet_content_as_rows(os.path.join(tmp_path, "MicroRNA-part000.parquet"))
-
-        protein_header_csv = os.path.join(tmp_path, "Protein-header.csv")
-        micro_rna_header_csv = os.path.join(tmp_path, "MicroRNA-header.csv")
-
-        with open(protein_header_csv) as f:
-            protein = f.read()
-        with open(micro_rna_header_csv) as f:
-            micro_rna = f.read()
+        protein_columns = get_parquet_column_names(os.path.join(tmp_path, "Protein-part000.parquet"))
+        micro_rna_columns = get_parquet_column_names(os.path.join(tmp_path, "MicroRNA-part000.parquet"))
 
         assert passed
         assert len(protein_0_rows) == 1e4
         assert len(micro_rna_0_rows) == 1e4
         assert not isfile(os.path.join(tmp_path, "Protein-part001.parquet"))
         assert not isfile(os.path.join(tmp_path, "MicroRNA-part001.parquet"))
-        assert protein == ":ID;name;score:double;taxon:long;genes;id;preferred_id;:LABEL"
-        assert micro_rna == ":ID;name;taxon:long;id;preferred_id;:LABEL"
+        assert protein_columns == [":ID", "name", "score", "taxon", "genes", "id", "preferred_id", ":LABEL"]
+        assert micro_rna_columns == [":ID", "name", "taxon", "id", "preferred_id", ":LABEL"]
     else:
         protein_0_csv = os.path.join(tmp_path, "Protein-part000.csv")
         micro_rna_0_csv = os.path.join(tmp_path, "MicroRNA-part000.csv")
@@ -1451,17 +1518,20 @@ def test_write_edge_id_optional(bw, _get_edges):
         assert "prel0;" in perturbed_in_disease
         assert "phos1;" not in phosphorylation
 
-    # Check headers regardless of format
-    perturbed_in_disease_header = os.path.join(tmp_path, "PERTURBED_IN_DISEASE-header.csv")
-    phosphorylation_header = os.path.join(tmp_path, "Phosphorylation-header.csv")
+    if bw.file_format == "parquet":
+        assert "id" in get_parquet_column_names(pid_file)
+        assert "id" not in get_parquet_column_names(phos_file)
+    else:
+        perturbed_in_disease_header = os.path.join(tmp_path, "PERTURBED_IN_DISEASE-header.csv")
+        phosphorylation_header = os.path.join(tmp_path, "Phosphorylation-header.csv")
 
-    with open(perturbed_in_disease_header) as f:
-        perturbed_in_disease_header = f.read()
-    with open(phosphorylation_header) as f:
-        phosphorylation_header = f.read()
+        with open(perturbed_in_disease_header) as f:
+            perturbed_in_disease_header = f.read()
+        with open(phosphorylation_header) as f:
+            phosphorylation_header = f.read()
 
-    assert "id;" in perturbed_in_disease_header
-    assert "id;" not in phosphorylation_header
+        assert "id;" in perturbed_in_disease_header
+        assert "id;" not in phosphorylation_header
 
 
 def test_write_edge_data_from_list_no_props(bw):
@@ -1635,24 +1705,27 @@ def test_write_edge_data_headers_import_call(bw, _get_nodes, _get_edges):
 
     tmp_path = bw.outdir
 
-    perturbed_in_disease_csv = os.path.join(tmp_path, "PERTURBED_IN_DISEASE-header.csv")
-    is_mutated_in_csv = os.path.join(tmp_path, "Is_Mutated_In-header.csv")
-
     # Determine import call script name based on OS
     if sys.platform.startswith("win"):
         call_csv = os.path.join(tmp_path, "neo4j-admin-import-call.ps1")
     else:
         call_csv = os.path.join(tmp_path, "neo4j-admin-import-call.sh")
 
-    with open(perturbed_in_disease_csv) as f:
-        perturbed_in_disease = f.read()
-    with open(is_mutated_in_csv) as f:
-        is_mutated_in = f.read()
     with open(call_csv) as f:
         call = f.read()
 
-    assert perturbed_in_disease == ":START_ID;id;residue;level:long;:END_ID;:TYPE"
-    assert is_mutated_in == ":START_ID;id;site;confidence:long;:END_ID;:TYPE"
+    if bw.file_format == "parquet":
+        assert get_parquet_column_names(part_path(bw, "PERTURBED_IN_DISEASE")) == [":START_ID", "id", "residue", "level", ":END_ID", ":TYPE"]
+        assert get_parquet_column_names(part_path(bw, "Is_Mutated_In")) == [":START_ID", "id", "site", "confidence", ":END_ID", ":TYPE"]
+    else:
+        perturbed_in_disease_csv = os.path.join(tmp_path, "PERTURBED_IN_DISEASE-header.csv")
+        is_mutated_in_csv = os.path.join(tmp_path, "Is_Mutated_In-header.csv")
+        with open(perturbed_in_disease_csv) as f:
+            perturbed_in_disease = f.read()
+        with open(is_mutated_in_csv) as f:
+            is_mutated_in = f.read()
+        assert perturbed_in_disease == ":START_ID;id;residue;level:long;:END_ID;:TYPE"
+        assert is_mutated_in == ":START_ID;id;site;confidence:long;:END_ID;:TYPE"
 
     assert "neo4j-admin" in call
     assert "import" in call
@@ -1812,18 +1885,24 @@ def test_write_mixed_edges(bw):
 
     tmp_path = bw.outdir
 
-    post_translational_interaction_csv = os.path.join(tmp_path, "PostTranslationalInteraction-header.csv")
-    is_source_of_csv = os.path.join(tmp_path, "IS_SOURCE_OF-header.csv")
-    is_target_of_csv = os.path.join(tmp_path, "IS_TARGET_OF-header.csv")
-    perturbed_in_disease_csv = os.path.join(tmp_path, "PERTURBED_IN_DISEASE-header.csv")
-
-    assert (
-        passed
-        and os.path.isfile(post_translational_interaction_csv)
-        and os.path.isfile(is_source_of_csv)
-        and os.path.isfile(is_target_of_csv)
-        and os.path.isfile(perturbed_in_disease_csv)
-    )
+    if bw.file_format == "parquet":
+        assert passed
+        assert get_parquet_column_names(part_path(bw, "PostTranslationalInteraction")) == [":ID", "id", "preferred_id", ":LABEL"]
+        assert get_parquet_column_names(part_path(bw, "IS_SOURCE_OF")) == [":START_ID", ":END_ID", ":TYPE"]
+        assert get_parquet_column_names(part_path(bw, "IS_TARGET_OF")) == [":START_ID", ":END_ID", ":TYPE"]
+        assert get_parquet_column_names(part_path(bw, "PERTURBED_IN_DISEASE")) == [":START_ID", "id", ":END_ID", ":TYPE"]
+    else:
+        post_translational_interaction_csv = os.path.join(tmp_path, "PostTranslationalInteraction-header.csv")
+        is_source_of_csv = os.path.join(tmp_path, "IS_SOURCE_OF-header.csv")
+        is_target_of_csv = os.path.join(tmp_path, "IS_TARGET_OF-header.csv")
+        perturbed_in_disease_csv = os.path.join(tmp_path, "PERTURBED_IN_DISEASE-header.csv")
+        assert (
+            passed
+            and os.path.isfile(post_translational_interaction_csv)
+            and os.path.isfile(is_source_of_csv)
+            and os.path.isfile(is_target_of_csv)
+            and os.path.isfile(perturbed_in_disease_csv)
+        )
 
 
 def test_duplicate_id(bw):
@@ -1986,12 +2065,24 @@ def test_tab_delimiter(bw_tab, _get_nodes):
 
     tmp_path = bw_tab.outdir
 
-    header = os.path.join(tmp_path, "Protein-header.csv")
+    if bw_tab.file_format == "parquet":
+        assert get_parquet_column_names(part_path(bw_tab, "Protein")) == [
+            ":ID",
+            "name",
+            "score",
+            "taxon",
+            "genes",
+            "id",
+            "preferred_id",
+            ":LABEL",
+        ]
+    else:
+        header = os.path.join(tmp_path, "Protein-header.csv")
 
-    with open(header) as f:
-        protein = f.read()
+        with open(header) as f:
+            protein = f.read()
 
-    assert "\t" in protein
+        assert "\t" in protein
 
     call = bw_tab._construct_import_call()
 
