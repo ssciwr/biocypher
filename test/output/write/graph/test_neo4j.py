@@ -2567,21 +2567,19 @@ def test_generated_import_call_is_accepted_by_neo4j(bw):
     Neo4j expects and we do not. The Parquet default shipped broken for two
     months because `--input-type` was missing and nothing executed the script.
 
-    Reading the graph back matters as much as the import succeeding. Declaring
-    a Parquet array column as `x:string[]` imports it as NULL on Neo4j 2026.03
-    and 2026.04 and still reports IMPORT DONE, so an exit-status check passes
-    while the property is silently gone.
+    Reading the graph back matters as much as the import succeeding. An import
+    may report IMPORT DONE without correctly integrating the data, so the
+    imported graph must be checked rather than relying on the exit status.
 
     Mirrors the version branching of `_construct_import_call_bash`, so the
     Neo4j 4 and Neo4j 5 forms of the call are each exercised by the matching
     image.
     """
-    # Measured floor, not the one in the release notes: 5.26.25 and earlier
-    # accept `--input-type=parquet` but then read the CSV header file as
-    # Parquet. Calendar versions all sort above this and are all fine.
+    # Skip Neo4j versions that do not reliably support the generated Parquet
+    # import; the target version must support import with Parquet.
     version = _neo4j_image_version()
     if bw.file_format == "parquet" and version < (5, 26, 26):
-        pytest.skip(f"{NEO4J_IMAGE} predates working Parquet import (Neo4j 5.26.26 LTS / any calendar release)")
+        pytest.skip(f"{NEO4J_IMAGE} does not support import with Parquet")
 
     # the container has neo4j-admin on PATH and the output mounted at /import;
     # both prefixes must be set before the headers record their paths

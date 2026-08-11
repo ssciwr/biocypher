@@ -71,9 +71,8 @@ class _Neo4jBatchWriter(_BatchWriter):
 
             msg = (
                 "The default output format for Neo4j offline mode has been changed to Parquet. "
-                "Importing it requires Neo4j 5.26.26 or later on the 5.26 LTS line, or any "
-                "calendar-versioned release (2026.03 and later); earlier versions will reject the "
-                "generated import script. Upgrade Neo4j, or explicitly set `file_format: csv` in "
+                "The target Neo4j version must support import with Parquet; otherwise the generated "
+                "import script will be rejected. Upgrade Neo4j, or explicitly set `file_format: csv` in "
                 "the `neo4j` section of your BioCypher config file."
             )
             logger.warning(msg)
