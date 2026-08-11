@@ -242,7 +242,7 @@ class _BatchWriter(_Writer, ABC):
                 The database port.
 
             file_format:
-                The format of RDF.
+                The format of RDF or Neo4j.
 
             rdf_namespaces:
                 The namespaces for RDF.
@@ -413,6 +413,48 @@ class _BatchWriter(_Writer, ABC):
             return "\t", "\\t"
 
         return delimiter, delimiter
+
+    def _get_node_table_column_names(self, label: str, prop_dict: dict):
+        """Return target-specific column names for a node data table.
+
+        Subclasses use this to provide either header fields or column names,
+        including the target's required identifier and label columns.
+
+        Args:
+        ----
+            label (str): the primary (ontology) label of the node
+
+            prop_dict (dict): Mapping of property names to their declared
+                data types.
+
+        Returns:
+        -------
+            list | None: Column names in the order of the written values, or
+                ``None`` if this is not applicable.
+
+        """
+        return
+
+    def _get_edge_table_column_names(self, label: str, prop_dict: dict):
+        """Return target-specific column names for an edge data table.
+
+        Subclasses use this to provide either header fields or column names,
+        including the target's required source, target, and type columns.
+
+        Args:
+        ----
+            label (str): the primary (ontology) label of the node
+
+            prop_dict (dict): Mapping of property names to their declared
+                data types.
+
+        Returns:
+        -------
+            list | None: Column names in the order of the written values, or
+                ``None`` if this is not applicable.
+
+        """
+        return
 
     def write_nodes(self, nodes, batch_size: int = int(1e6), force: bool = False):
         """Write nodes and their headers.
@@ -871,10 +913,10 @@ class _BatchWriter(_Writer, ABC):
         prop_dict: dict,
         labels: str,
     ):
-        """Write a list of biocypher nodes to a CSV file.
+        """Write a list of biocypher nodes to a CSV or Parquet file.
 
         This function takes one list of biocypher nodes and writes them
-        to a Neo4j admin import compatible CSV file.
+        to a Neo4j admin import compatible CSV or Parquet file.
 
         Args:
         ----
@@ -894,8 +936,9 @@ class _BatchWriter(_Writer, ABC):
             logger.error("Nodes must be passed as type BioCypherNode.")
             return False
 
-        # from list of nodes to list of strings
-        lines = []
+        # from list of nodes to rows
+        # (lines in string for CSV or dict for Parquet)
+        rows = []
 
         for n in node_list:
             # check for deviations in properties
@@ -920,39 +963,48 @@ class _BatchWriter(_Writer, ABC):
                 )
                 return False
 
-            line = [n.get_id()]
+            if self.file_format == "parquet":
+                rows.append(
+                    [
+                        n.get_id(),
+                        *(n_props.get(k) for k in prop_dict),
+                        labels,
+                    ],
+                )
+            else:
+                line = [n.get_id()]
 
-            if ref_props:
-                plist = []
-                # make all into strings, put actual strings in quotes
-                for k, v in prop_dict.items():
-                    p = n_props.get(k)
-                    if p is None:  # TODO make field empty instead of ""?
-                        plist.append("")
-                    elif v in ["bool", "boolean"]:
-                        plist.append(str(p).lower())
-                    elif v in [
-                        "int",
-                        "integer",
-                        "long",
-                        "float",
-                        "double",
-                        "dbl",
-                    ]:
-                        plist.append(str(p))
-                    elif isinstance(p, list):
-                        plist.append(self._write_array_string(p))
-                    else:
-                        plist.append(self._quote_string(str(p)))
+                if ref_props:
+                    plist = []
+                    # make all into strings, put actual strings in quotes
+                    for k, v in prop_dict.items():
+                        p = n_props.get(k)
+                        if p is None:  # TODO make field empty instead of ""?
+                            plist.append("")
+                        elif v in ["bool", "boolean"]:
+                            plist.append(str(p).lower())
+                        elif v in [
+                            "int",
+                            "integer",
+                            "long",
+                            "float",
+                            "double",
+                            "dbl",
+                        ]:
+                            plist.append(str(p))
+                        elif isinstance(p, list):
+                            plist.append(self._write_array_string(map(str, p)))
+                        else:
+                            plist.append(self._quote_string(str(p)))
 
-                line.append(self.delim.join(plist))
-            line.append(labels)
+                    line.append(self.delim.join(plist))
+                line.append(labels)
 
-            lines.append(self.delim.join(line) + "\n")
+                rows.append(self.delim.join(line) + "\n")
 
         # avoid writing empty files
-        if lines:
-            self._write_next_part(label, lines)
+        if rows:
+            self._write_next_part(label, rows, self._get_node_table_column_names(label, prop_dict))
 
         return True
 
@@ -1181,7 +1233,7 @@ class _BatchWriter(_Writer, ABC):
             return False
 
         # from list of edges to list of strings
-        lines = []
+        rows = []
         for e in edge_list:
             # check for deviations in properties
             # edge properties
@@ -1203,28 +1255,6 @@ class _BatchWriter(_Writer, ABC):
                     f"All edge properties: {e_keys}.",
                 )
                 return False
-
-            plist = []
-            # make all into strings, put actual strings in quotes
-            for k, v in prop_dict.items():
-                p = e_props.get(k)
-                if p is None:  # TODO make field empty instead of ""?
-                    plist.append("")
-                elif v in ["bool", "boolean"]:
-                    plist.append(str(p).lower())
-                elif v in [
-                    "int",
-                    "integer",
-                    "long",
-                    "float",
-                    "double",
-                    "dbl",
-                ]:
-                    plist.append(str(p))
-                elif isinstance(p, list):
-                    plist.append(self._write_array_string(p))
-                else:
-                    plist.append(self._quote_string(str(p)))
 
             entries = [e.get_source_id()]
 
@@ -1258,24 +1288,52 @@ class _BatchWriter(_Writer, ABC):
                 entries.append(e.get_id() or "")
 
             if ref_props:
-                entries.append(self.delim.join(plist))
+                if self.file_format == "parquet":
+                    entries.extend(e_props.get(k) for k in prop_dict)
+                else:
+                    plist = []
+                    # make all into strings, put actual strings in quotes
+                    for k, v in prop_dict.items():
+                        p = e_props.get(k)
+                        if p is None:  # TODO make field empty instead of ""?
+                            plist.append("")
+                        elif v in ["bool", "boolean"]:
+                            plist.append(str(p).lower())
+                        elif v in [
+                            "int",
+                            "integer",
+                            "long",
+                            "float",
+                            "double",
+                            "dbl",
+                        ]:
+                            plist.append(str(p))
+                        elif isinstance(p, list):
+                            plist.append(self._write_array_string(map(str, p)))
+                        else:
+                            plist.append(self._quote_string(str(p)))
+
+                    entries.append(self.delim.join(plist))
 
             entries.append(e.get_target_id())
 
             all_labels = self._get_all_labels(label, self.edge_labels_order)
             entries.append(all_labels)
 
-            lines.append(
-                self.delim.join(entries) + "\n",
-            )
+            if self.file_format == "parquet":
+                rows.append(entries)
+            else:
+                rows.append(
+                    self.delim.join(entries) + "\n",
+                )
 
         # avoid writing empty files
-        if lines:
-            self._write_next_part(label, lines)
+        if rows:
+            self._write_next_part(label, rows, self._get_edge_table_column_names(label, prop_dict))
 
         return True
 
-    def _write_next_part(self, label: str, lines: list):
+    def _write_next_part(self, label: str, rows: list, column_names: list | None):
         """Write a list of strings to a new part file.
 
         Args:
@@ -1284,18 +1342,23 @@ class _BatchWriter(_Writer, ABC):
             representation sentence case -> needs to become PascalCase
             for disk representation
 
-            lines (list): list of strings to be written
+            rows (list): list of rows to be written
+
+            column_names (list | None): Names for columns, ordered to
+                match the values in each row. May not be applicable.
 
         Returns:
         -------
-            bool: The return value. True for success, False otherwise.
+            None
 
         """
         # translate label to PascalCase
         label_pascal = self.translator.name_sentence_to_pascal(parse_label(label))
 
+        extension = "parquet" if self.file_format == "parquet" else "csv"
+
         # list files in self.outdir
-        files = glob.glob(os.path.join(self.outdir, f"{label_pascal}-part*.csv"))
+        files = glob.glob(os.path.join(self.outdir, f"{label_pascal}-part*.{extension}"))
         # find file with highest part number
         if not files:
             next_part = 0
@@ -1311,16 +1374,37 @@ class _BatchWriter(_Writer, ABC):
         # write to file
         padded_part = str(next_part).zfill(3)
         logger.info(
-            f"Writing {len(lines)} entries to {label_pascal}-part{padded_part}.csv",
+            f"Writing {len(rows)} entries to {label_pascal}-part{padded_part}.{extension}",
         )
 
         # store name only in case import_call_file_prefix is set
-        part = f"{label_pascal}-part{padded_part}.csv"
+        part = f"{label_pascal}-part{padded_part}.{extension}"
         file_path = os.path.join(self.outdir, part)
 
-        with open(file_path, "w", encoding="utf-8") as f:
-            # concatenate with delimiter
-            f.writelines(lines)
+        if self.file_format == "parquet":
+            import pyarrow as pa  # noqa: PLC0415
+            import pyarrow.parquet as pq  # noqa: PLC0415
+
+            columns = [[] for _ in range(len(rows[0]))]
+            for row in rows:
+                for i, val in enumerate(row):
+                    columns[i].append(val)
+
+            try:
+                table = pa.table(dict(zip(column_names, columns, strict=True)))
+            except pa.ArrowInvalid as exc:
+                msg = (
+                    f"Cannot write Parquet for `{label}`: a property mixes incompatible value "
+                    f"types ({exc}). Fix the offending values, or set `file_format: csv` in the "
+                    f"`neo4j` section of your BioCypher config."
+                )
+                logger.error(msg)
+                raise ValueError(msg) from exc
+            pq.write_table(table, file_path, compression="zstd")
+        else:
+            with open(file_path, "w", encoding="utf-8") as f:
+                # concatenate with delimiter
+                f.writelines(rows)
 
         if not self.parts.get(label):
             self.parts[label] = [part]

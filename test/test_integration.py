@@ -6,8 +6,14 @@ import networkx as nx
 import pytest
 
 import pandas as pd
+import pyarrow.parquet as pq
 
 from biocypher._ontology import Ontology
+
+
+def get_parquet_content_as_rows(file_path):
+    table = pq.read_table(file_path)
+    return [tuple(row.values()) for row in table.to_pylist()]
 
 
 @pytest.mark.parametrize("length", [4], scope="function")
@@ -22,20 +28,16 @@ def test_write_node_data_from_gen(core, _get_nodes):
 
     path = core._output_directory
 
-    protein_csv = os.path.join(path, "Protein-part000.csv")
-    micro_rna_csv = os.path.join(path, "MicroRNA-part000.csv")
-
-    with open(protein_csv) as f:
-        protein_data = f.read()
-
-    with open(micro_rna_csv) as f:
-        micro_rna_data = f.read()
+    protein_data_file = os.path.join(path, "Protein-part000.parquet")
+    micro_rna_data_file = os.path.join(path, "MicroRNA-part000.parquet")
+    protein_data = get_parquet_content_as_rows(protein_data_file)
+    micro_rna_data = get_parquet_content_as_rows(micro_rna_data_file)
 
     assert passed
-    assert "p1;'StringProperty1';4.0;9606;'gene1|gene2';'p1';'uniprot'" in protein_data
-    assert "BiologicalEntity" in protein_data
-    assert "m1;'StringProperty1';9606;'m1';'mirbase'" in micro_rna_data
-    assert "ChemicalEntity" in micro_rna_data
+    assert protein_data[0][:-1] == ("p1", "StringProperty1", 4.0, 9606, ["gene1", "gene2"], "p1", "uniprot")
+    assert "BiologicalEntity" in protein_data[0][-1]
+    assert micro_rna_data[0][:-1] == ("m1", "StringProperty1", 9606, "m1", "mirbase")
+    assert "ChemicalEntity" in micro_rna_data[0][-1]
 
 
 def test_show_ontology_structure_kwargs(core):
@@ -66,23 +68,18 @@ def test_write_schema_info_as_node(core, _get_nodes):
 
     schema = core.write_schema_info(as_node=True)
 
-    header_path = os.path.join(core._output_directory, "Schema_info-header.csv")
-    assert os.path.exists(header_path)
-    schema_path = os.path.join(core._output_directory, "Schema_info-part000.csv")
+    schema_path = os.path.join(core._output_directory, "Schema_info-part000.parquet")
     assert os.path.exists(schema_path)
 
-    with open(header_path, "r") as f:
-        schema_header = f.read()
+    schema_header = pq.read_table(schema_path).column_names
 
     assert "schema_info" in schema_header
 
     # read schema_path with pandas
-    schema_df = pd.read_csv(schema_path, sep=";", header=None)
+    schema_df = pd.read_parquet(schema_path)
 
     # get the second column of the first row and decode from json dumps format
     string = schema_df.iloc[0, 1]
-    # fix initial and end quotes
-    string = string[1:-1]
     schema_part = json.loads(string)
 
     assert schema_part == schema
@@ -94,7 +91,7 @@ def test_write_schema_info_as_node(core, _get_nodes):
         import_call_filename = "neo4j-admin-import-call.sh"
     import_call_path = os.path.join(core._output_directory, import_call_filename)
     assert os.path.exists(import_call_path)
-    with open(import_call_path, "r") as f:
+    with open(import_call_path) as f:
         import_call = f.read()
 
     assert "Schema_info" in import_call
