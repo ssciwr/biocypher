@@ -12,7 +12,10 @@ def test_create_driver(driver):
 
 @pytest.mark.requires_neo4j
 def test_connect_to_db(driver):
-    assert isinstance(driver._driver.driver, neo4j.Neo4jDriver)
+    # `neo4j.Driver`, not `neo4j.Neo4jDriver`: against Community Edition the
+    # wrapper rewrites `neo4j://` to `bolt://` (routing is Enterprise-only),
+    # which yields a `BoltDriver`. Both are connected drivers.
+    assert isinstance(driver._driver.driver, neo4j.Driver)
 
 
 @pytest.mark.requires_neo4j

@@ -13,6 +13,10 @@ class _ArangoDBBatchWriter(_Neo4jBatchWriter):
     Output files are similar to Neo4j, but with a different header format.
     """
 
+    # `arangoimport` reads CSV/TSV/JSON, not Parquet, so this writer keeps CSV
+    # as its default regardless of the Neo4j writer's default.
+    _default_file_format = "csv"
+
     def _get_default_import_call_bin_prefix(self):
         """Provide the default string for the import call bin prefix.
 

@@ -36,7 +36,7 @@ jobs:
     - name: Run tests
       uses: ./.github/actions/test
       with:
-        NEO4J_VERSION: "4.4-enterprise"
+        NEO4J_VERSION: "4.4-community"
     #----------------------------------------------
     #        generate test coverage badge
     #----------------------------------------------

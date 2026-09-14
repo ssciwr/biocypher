@@ -69,6 +69,7 @@ nav:
       - HowTo / FAQ:
           - Overview: learn/guides/index.md
           - Standalone Docker Image: learn/guides/htg001_standalone_docker_biocypher.md
+          - Large-scale Offline Builds: learn/guides/large-scale-builds.md
 
       - Explanations:
           - Overview: learn/explanation/index.md

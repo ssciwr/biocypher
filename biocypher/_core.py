@@ -16,7 +16,7 @@ from ._config import (
     update_from_file as _file_update,
 )
 from ._create import BioCypherNode
-from ._deduplicate import Deduplicator
+from ._deduplicate import Deduplicator, DiskBasedDeduplicator
 from ._get import Downloader
 from ._logger import logger
 from ._mapping import OntologyMapping
@@ -89,6 +89,7 @@ class BioCypher:
         tail_ontologies: dict = None,
         output_directory: str = None,
         cache_directory: str = None,
+        big_data: bool = False,
         # legacy params
         db_name: str = None,
     ):
@@ -156,6 +157,12 @@ class BioCypher:
             msg = f"DBMS {self._dbms} not supported. Please select from {SUPPORTED_DBMS}."
             raise ValueError(msg)
 
+        self._big_data = big_data or self.base_config.get("big_data", False)
+
+        if self._big_data and not self._offline:
+            msg = "Big data mode is only supported in offline mode."
+            raise ValueError(msg)
+
         # Initialize
         self._ontology_mapping = None
         self._deduplicator = None
@@ -164,8 +171,6 @@ class BioCypher:
         self._ontology = None
         self._writer = None
         self._driver = None
-        self._in_memory_kg = None
-
         self._in_memory_kg = None
         self._nodes = None
         self._edges = None
@@ -193,9 +198,9 @@ class BioCypher:
 
         """
         if isinstance(nodes, list):
-            self._nodes = list(itertools.chain(self._nodes, nodes))
+            self._nodes = list(itertools.chain(self._nodes or [], nodes))
         else:
-            self._nodes = itertools.chain(self._nodes, nodes)
+            self._nodes = itertools.chain(self._nodes or iter([]), nodes)
 
     def add_edges(self, edges) -> None:
         """Add new edges to the internal representation.
@@ -209,9 +214,9 @@ class BioCypher:
 
         """
         if isinstance(edges, list):
-            self._edges = list(itertools.chain(self._edges, edges))
+            self._edges = list(itertools.chain(self._edges or [], edges))
         else:
-            self._edges = itertools.chain(self._edges, edges)
+            self._edges = itertools.chain(self._edges or iter([]), edges)
 
     def to_df(self):
         """Create DataFrame using internal representation.
@@ -248,8 +253,7 @@ class BioCypher:
         if not self._translator:
             self._get_translator()
 
-        # These attributes might not exist when using in-memory KG directly
-        if hasattr(self, "_nodes") and hasattr(self, "_edges"):
+        if self._nodes is not None and self._edges is not None:
             tnodes = self._translator.translate_entities(self._nodes)
             tedges = self._translator.translate_entities(self._edges)
             self._in_memory_kg.add_nodes(tnodes)
@@ -260,7 +264,7 @@ class BioCypher:
     def _get_deduplicator(self) -> Deduplicator:
         """Create deduplicator if not exists and return."""
         if not self._deduplicator:
-            self._deduplicator = Deduplicator()
+            self._deduplicator = DiskBasedDeduplicator() if self._big_data else Deduplicator()
 
         return self._deduplicator
 
@@ -292,7 +296,7 @@ class BioCypher:
                     raise ValueError(msg)
                 logger.info(
                     "Running BioCypher in headless mode: no head ontology loaded. "
-                    "Class hierarchy is defined by schema_config.yaml only."
+                    "Class hierarchy is defined by schema_config.yaml only.",
                 )
                 self._ontology = NullOntology(
                     ontology_mapping=self._get_ontology_mapping(),
@@ -450,7 +454,7 @@ class BioCypher:
 
     def _is_online_and_in_memory(self) -> bool:
         """Return True if in online mode and in-memory dbms is used."""
-        return (not self._offline) & (self._dbms in IN_MEMORY_DBMS)
+        return (not self._offline) and (self._dbms in IN_MEMORY_DBMS)
 
     def write_nodes(
         self,
@@ -555,14 +559,11 @@ class BioCypher:
         dataframes or a NetworkX DiGraph.
         """
         if not self._is_online_and_in_memory():
-            msg = (f"Getting the in-memory KG is only available in online mode for {IN_MEMORY_DBMS}.",)
+            msg = f"Getting the in-memory KG is only available in online mode for {IN_MEMORY_DBMS}."
             raise ValueError(msg)
         if not self._in_memory_kg:
             msg = "No in-memory KG instance found. Please call `add()` first."
             raise ValueError(msg)
-
-        if not self._in_memory_kg:
-            self._initialize_in_memory_kg()
         return self._in_memory_kg.get_kg()
 
     # DOWNLOAD AND CACHE MANAGEMENT METHODS ###
@@ -617,9 +618,8 @@ class BioCypher:
             logger.info(msg)
             return mt
 
-        else:
-            logger.info("No missing labels in input.")
-            return None
+        logger.info("No missing labels in input.")
+        return None
 
     def log_duplicates(self) -> None:
         """Log duplicate nodes and edges.
@@ -627,12 +627,9 @@ class BioCypher:
         Get the set of duplicate nodes and edges encountered and print them to
         the logger.
         """
-        dn = self._deduplicator.get_duplicate_nodes()
+        ntypes, nids = self._deduplicator.get_duplicate_nodes()
 
-        if dn:
-            ntypes = dn[0]
-            nids = dn[1]
-
+        if len(nids) > 0:
             msg = "Duplicate node types encountered (IDs in log): \n"
             for typ in ntypes:
                 msg += f"    {typ}\n"
@@ -648,12 +645,9 @@ class BioCypher:
         else:
             logger.info("No duplicate nodes in input.")
 
-        de = self._deduplicator.get_duplicate_edges()
+        etypes, eids = self._deduplicator.get_duplicate_edges()
 
-        if de:
-            etypes = de[0]
-            eids = de[1]
-
+        if len(eids) > 0:
             msg = "Duplicate edge types encountered (IDs in log): \n"
             for typ in etypes:
                 msg += f"    {typ}\n"
@@ -701,12 +695,11 @@ class BioCypher:
         if not self._offline:
             msg = "Cannot write import call in online mode."
             raise NotImplementedError(msg)
-        else:
-            if not self._writer:
-                logger.warning(
-                    "No edges or nodes were added, I'll try to continue, but you may want to double-check your data."
-                )
-                self._initialize_writer()
+        if not self._writer:
+            logger.warning(
+                "No edges or nodes were added, I'll try to continue, but you may want to double-check your data.",
+            )
+            self._initialize_writer()
 
         return self._writer.write_import_call()
 
@@ -743,7 +736,7 @@ class BioCypher:
         schema["is_schema_info"] = True
 
         deduplicator = self._get_deduplicator()
-        for node in deduplicator.entity_types:
+        for node in deduplicator.seen_entity_types:
             if node in schema:
                 schema[node]["present_in_knowledge_graph"] = True
                 schema[node]["is_relationship"] = False
@@ -758,10 +751,10 @@ class BioCypher:
             if not isinstance(v, dict):
                 continue
             if "label_as_edge" in v:
-                if v["label_as_edge"] in deduplicator.seen_relationships:
+                if v["label_as_edge"] in deduplicator.seen_relationship_types:
                     changed_labels[v["label_as_edge"]] = k
 
-        for edge in deduplicator.seen_relationships:
+        for edge in deduplicator.seen_relationship_types:
             if edge in changed_labels:
                 edge = changed_labels[edge]
             if edge in schema:
@@ -806,8 +799,8 @@ class BioCypher:
             str: The BioCypher equivalent of the term.
 
         """
-        # instantiate adapter if not exists
-        self.start_ontology()
+        if not self._translator:
+            self._get_translator()
 
         return self._translator.translate_term(term)
 
@@ -832,8 +825,8 @@ class BioCypher:
             str: The original term.
 
         """
-        # instantiate adapter if not exists
-        self.start_ontology()
+        if not self._translator:
+            self._get_translator()
 
         return self._translator.reverse_translate_term(term)
 
@@ -849,8 +842,8 @@ class BioCypher:
             str: The BioCypher equivalent of the query.
 
         """
-        # instantiate adapter if not exists
-        self.start_ontology()
+        if not self._translator:
+            self._get_translator()
 
         return self._translator.translate(query)
 
@@ -866,7 +859,7 @@ class BioCypher:
             str: The original query.
 
         """
-        # instantiate adapter if not exists
-        self.start_ontology()
+        if not self._translator:
+            self._get_translator()
 
         return self._translator.reverse_translate(query)
