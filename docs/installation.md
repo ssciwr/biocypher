@@ -143,6 +143,8 @@ below to get started.
     uv add "biocypher[neo4j]"
     # - For AIRR functionality
     uv add "biocypher[scirpy]"
+    # - For disk-backed deduplication in large offline builds
+    uv add "biocypher[bigdata]"
     ```
 
 === "pip"
@@ -180,12 +182,21 @@ below to get started.
 
         # With Neo4j online mode support (optional)
         pip install biocypher[neo4j]
+
+        # With disk-backed deduplication for large offline builds (optional)
+        pip install biocypher[bigdata]
         ```
 
     !!! note "Neo4j Driver is Optional"
         The Neo4j Python driver is only required if you plan to use BioCypher
         with Neo4j in online mode (`offline: false`). For offline mode or other
         output formats, it is not needed.
+
+    !!! note "Large-scale builds are optional"
+        The `bigdata` extra is only required when using `big_data: true` for
+        disk-backed deduplication in an offline build. See the
+        [large-scale build guide](learn/guides/large-scale-builds.md) for
+        resource requirements and usage.
 
 ## :material-docker: **Option 3.** Docker
 

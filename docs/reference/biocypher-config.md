@@ -53,6 +53,7 @@ biocypher:
   dbms: neo4j
   schema_config_path: config/schema_config.yaml
   offline: true
+  big_data: false
   strict_mode: false
   head_ontology:
     url: https://github.com/biolink/biolink-model/raw/v3.2.1/biolink-model.owl.ttl
@@ -96,9 +97,10 @@ neo4j:
   user: neo4j
   password: neo4j
 
-  delimiter: ";"
-  array_delimiter: "|"
-  quote_character: "'"
+  csv_column_delimiter: ","
+  csv_array_delimiter: ";"
+  csv_string_quote_character: '"'
+  file_format: parquet # `parquet` (default, needs a Neo4j version that supports import with Parquet) or `csv`
 
   multi_db: true
 
@@ -161,6 +163,7 @@ csv:
 | `dbms` | Specifies which database management system to use | string | `"neo4j"` |
 | `schema_config_path` | Path to the schema configuration file | string | `"config/schema_config.yaml"` |
 | `offline` | Whether to run in offline mode (no running DBMS or in-memory object) | boolean | `true` |
+| `big_data` | Use disk-backed deduplication for large offline builds. Requires the `bigdata` extra and cannot be used in online mode. | boolean | `false` |
 | `strict_mode` | Whether to enforce strict schema validation | boolean | `false` |
 | `head_ontology.url` | URL or file path to the main ontology file | string | Biolink model URL |
 | `head_ontology.root_node` | The root node of the ontology to use | string | `"entity"` |
@@ -172,6 +175,9 @@ csv:
 | `cache_directory` | Directory for cache files | string | `".cache"` |
 | `tail_ontologies` | Additional ontologies to use (optional) | object | - |
 
+For usage guidance and resource requirements, see
+[Large-scale offline builds](../learn/guides/large-scale-builds.md).
+
 ### Neo4j Configuration
 
 | Parameter | Description | Type | Default |
@@ -181,9 +187,10 @@ csv:
 | `uri` | Connection URI for Neo4j | string | `"neo4j://localhost:7687"` |
 | `user` | Username for Neo4j authentication | string | `"neo4j"` |
 | `password` | Password for Neo4j authentication | string | `"neo4j"` |
-| `delimiter` | Field delimiter for CSV import files | string | `";"` |
-| `array_delimiter` | Delimiter for array values | string | `"\|"` |
-| `quote_character` | Character used for quoting string values | string | `"'"` |
+| `csv_column_delimiter` | Field delimiter for CSV import files; matches `neo4j-admin` | string | `","` |
+| `csv_array_delimiter` | Delimiter for array values; matches `neo4j-admin` | string | `";"` |
+| `csv_string_quote_character` | Character used for quoting string values; matches `neo4j-admin` | string | `'"'` |
+| `file_format` | File format for offline node and edge data; `"parquet"` needs a Neo4j version that supports import with Parquet | string | `"parquet"` (`"csv"` is also supported) |
 | `multi_db` | Whether to use multi-database support | boolean | `true` |
 | `skip_duplicate_nodes` | Whether to skip duplicate nodes during import | boolean | `false` |
 | `skip_bad_relationships` | Whether to skip relationships with missing endpoints | boolean | `false` |

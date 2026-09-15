@@ -5,6 +5,7 @@ import pytest
 import yaml
 
 from biocypher import BioCypher
+from biocypher._deduplicate import DiskBasedDeduplicator
 from biocypher.output.in_memory._get_in_memory_kg import IN_MEMORY_DBMS
 from biocypher.output.write._get_writer import DBMS_TO_CLASS
 
@@ -40,6 +41,22 @@ def test_log_duplicates(core, deduplicator, _get_nodes):
     assert "m1" in core._deduplicator.duplicate_entity_ids
 
 
+def test_big_data_mode_only_in_offline_mode():
+    with pytest.raises(ValueError) as e:
+        BioCypher(dbms="csv", offline=False, big_data=True)
+    assert str(e.value) == "Big data mode is only supported in offline mode."
+
+
+def test_uses_disk_based_deduplicator_when_big_data_true(core):
+    core._deduplicator = None
+    core._offline = True
+    core._big_data = True
+
+    deduplicator = core._get_deduplicator()
+
+    assert isinstance(deduplicator, DiskBasedDeduplicator)
+
+
 @pytest.mark.parametrize("length", [4], scope="function")
 def test_write_schema_info(core, _get_nodes, _get_edges, _get_rel_as_nodes):
     core._offline = False
@@ -66,7 +83,7 @@ def test_write_schema_info(core, _get_nodes, _get_edges, _get_rel_as_nodes):
     path = os.path.join(core._output_directory, "schema_info.yaml")
     assert os.path.exists(path)
 
-    with open(path, "r") as f:
+    with open(path) as f:
         schema_loaded = yaml.safe_load(f)
 
     assert schema_loaded == schema
@@ -77,7 +94,7 @@ def test_show_full_ontology_structure_without_schema():
         head_ontology={
             "url": "test/ontologies/so.owl",
             "root_node": "sequence_variant",
-        }
+        },
     )
     treevis = bc.show_ontology_structure(full=True)
 
@@ -96,6 +113,7 @@ def test_in_memory_kg_only_in_online_mode(core):
         with pytest.raises(ValueError) as e:
             core.get_kg()
         assert "Getting the in-memory KG is only available in online mode for " in str(e.value)
+        assert isinstance(e.value.args[0], str), "error message must be a str, not a tuple"
 
 
 def test_no_in_memory_kg_for_dbms(core):
@@ -160,7 +178,7 @@ def test_online_add_edges_calls_add_biocypher_edges(core, _get_edges):
 
 
 def test_pandas_and_tabular_work_in_offline_mode(tmp_path):
-    """pandas and tabular are aliases for csv and should work in offline mode."""
+    """Pandas and tabular are aliases for csv and should work in offline mode."""
     for dbms in ["pandas", "tabular"]:
         bc = BioCypher(
             dbms=dbms,
@@ -170,3 +188,62 @@ def test_pandas_and_tabular_work_in_offline_mode(tmp_path):
         )
         assert bc._dbms == dbms
         assert bc._offline
+
+
+def test_translate_term_via_core(core):
+    """BioCypher.translate_term must lazily initialise the translator and return the mapped label."""
+    assert core._translator is None
+    result = core.translate_term("hgnc")
+    assert result == "Gene"
+    assert core._translator is not None
+
+
+def test_reverse_translate_term_via_core(core):
+    """BioCypher.reverse_translate_term must lazily initialise the translator and reverse-map the label."""
+    assert core._translator is None
+    result = core.reverse_translate_term("Gene")
+    assert result is not None
+    assert "hgnc" in result
+
+
+def test_translate_query_via_core(core):
+    """BioCypher.translate_query must lazily initialise the translator and translate Cypher labels."""
+    assert core._translator is None
+    query = "MATCH (n:hgnc) RETURN n"
+    result = core.translate_query(query)
+    assert "Gene" in result
+    assert "hgnc" not in result
+
+
+def test_reverse_translate_query_via_core(core):
+    """BioCypher.reverse_translate_query must lazily initialise the translator."""
+    assert core._translator is None
+    query = "MATCH (n:Protein)-[r:POST_TRANSLATIONAL_INTERACTION]->(m:Protein) RETURN n"
+    result = core.reverse_translate_query(query)
+    assert isinstance(result, str)
+
+
+@pytest.mark.parametrize("length", [4], scope="function")
+def test_add_nodes_first_call_does_not_crash(core, _get_nodes):
+    """add_nodes must not crash when self._nodes is still None (first call)."""
+    # self._nodes starts as None; passing a list used to raise
+    # TypeError: 'NoneType' object is not iterable via itertools.chain
+    core.add_nodes(_get_nodes)
+    assert core._nodes == _get_nodes
+
+
+@pytest.mark.parametrize("length", [4], scope="function")
+def test_add_nodes_accumulates_across_calls(core, _get_nodes):
+    """Successive add_nodes calls must append, not crash on the second call."""
+    first_half = _get_nodes[:4]
+    second_half = _get_nodes[4:]
+    core.add_nodes(first_half)
+    core.add_nodes(second_half)
+    assert len(core._nodes) == len(first_half) + len(second_half)
+
+
+@pytest.mark.parametrize("length", [4], scope="function")
+def test_add_edges_first_call_does_not_crash(core, _get_edges):
+    """add_edges must not crash when self._edges is still None (first call)."""
+    core.add_edges(_get_edges)
+    assert core._edges == _get_edges
