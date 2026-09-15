@@ -7,7 +7,7 @@ tags:
 
 ## Overview
 
-This tutorial will help you get started with OntoWeaver as a replacement for an adapter in BioCypher, thus creating knowledge graphs automatically. You will learn how to use OntoWevaer to create a simple knowledge graph with a synthetic dataset that contains information about proteins and its interactions.
+This tutorial will help you get started with OntoWeaver as a replacement for an adapter in BioCypher, thus creating knowledge graphs automatically. You will learn how to use OntoWeaver to create a simple knowledge graph with a synthetic dataset that contains information about proteins and its interactions.
 
 By the end of this tutorial, you will be able to:
 
@@ -112,7 +112,6 @@ In this section, you will set up your working environment.
     for a pip installation.
 
 ### Setup Neo4j
-> **Note:**
 
 In this section, we will create a Neo4j instance to use later in the tutorial. It is important to set this up now.
 
@@ -507,7 +506,7 @@ The `activation:` top-level key in the YAML snippet identifies our edge entity.
 | Key                  | Value                         | Description                                                                                           |
 | -------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `is_a`               | `protein protein interaction` | Defines the type of entity; in this case, it is a child of the base edge we defined previously.       |
-| `inherit_properties` | `true`                        | Indicates whether all propertuniproties defined in the base edge should be inherited.                 |
+| `inherit_properties` | `true`                        | Indicates whether all properties defined in the base edge should be inherited.                 |
 | `represented_as`     | `edge`                        | Specifies that BioCypher will treat this entity (`activation`) as an edge.                            |
 | `input_label`        | `binding`                     | Specifies the expected edge label; edges without this label are ignored unless defined in the schema. |
 
@@ -730,7 +729,7 @@ We need to create a mapping file in the `config` folder, that contains informati
       - version: "tutorial-example-ontoweaver"
     ```
 
-The first block is maps the rows and starts with `row`: This mapping explains the meaning of each row in the input table. In this case, each row of the column `source` in the tabular data is mapped to `protein`.
+The first block maps the rows and starts with `row`: This mapping explains the meaning of each row in the input table. In this case, each row of the column `source` in the tabular data is mapped to `protein`.
 
 The section `transformers` then links the other nodes to it using the described transformations.
 

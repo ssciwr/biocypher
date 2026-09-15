@@ -149,7 +149,6 @@ In this section, you will set up your working environment and folder structure f
 
 ### Setup Neo4j
 
-> **Note:**
 In this section, we will create a Neo4j instance to use later in the tutorial. It is important to set this up now. For more information about Neo4j, please take a look at our [Explanations](../../explanation/index.md).
 
 1. Execute Neo4j Desktop, if this the first time you should see a window like this one.
