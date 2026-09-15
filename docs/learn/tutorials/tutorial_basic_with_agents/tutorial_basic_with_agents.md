@@ -55,7 +55,7 @@ and the agent should respond with a list of available tools, such as
 
 ### Setting up the working environment and starter repository using an AI agent
 
-In this section, you will set up your working environment and folder structure for the [BioCypher adapter](howto/adapter.md).
+In this section, you will set up your working environment and folder structure for the [BioCypher adapter](../../explanation/adapters.md).
 
 **Steps:**
 
@@ -150,7 +150,7 @@ In this section, you will set up your working environment and folder structure f
 ### Setup Neo4j
 
 > **Note:**
-In this section, we will create a Neo4j instance to use later in the tutorial. It is important to set this up now. For more information about Neo4j, please take a look at our [Explanations](explanation/neo4j.md).
+In this section, we will create a Neo4j instance to use later in the tutorial. It is important to set this up now. For more information about Neo4j, please take a look at our [Explanations](../../explanation/index.md).
 
 1. Execute Neo4j Desktop, if this the first time you should see a window like this one.
 
@@ -616,7 +616,7 @@ The second block is the Database Management System Settings, which starts with t
 | `skip_bad_relationships` | `true`            | Whether to skip relationships with missing endpoints |
 | `import_call_bin_prefix` | i.e., `/usr/bin/` | Prefix for the import command binary (optional)      |
 
-The `import_call_bin_prefix` is the path to your Neo4j instance that you looked up in [section Setup Neo4j](###setup-neo4j) together with the prefix `/bin`.
+The `import_call_bin_prefix` is the path to your Neo4j instance that you looked up in [section Setup Neo4j](#setup-neo4j) together with the prefix `/bin`.
 
 The default configuration that comes with BioCypher and more configuration parameters for the Settings are listed in [BioCypher Configuration Reference](https://biocypher.org/BioCypher/reference/biocypher-config/).
 

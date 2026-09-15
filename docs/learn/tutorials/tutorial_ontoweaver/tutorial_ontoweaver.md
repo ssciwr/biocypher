@@ -333,7 +333,7 @@ To achieve this, we can divide the process into three sections:
     - [Schema configuration](#create-a-schema-for-your-graph)
     - [BioCypher configuration](#configure-biocypher-behavior)
 
-2. [Mapping](#step-2-mapping).
+2. [Mapping](#step-2-create-the-mapping).
      - Map the columns to types in the ontology
      - Process data
      - Stream processed data
@@ -650,7 +650,7 @@ The second block is the Database Management System Settings, which starts with t
 | `skip_bad_relationships` | `true`            | Whether to skip relationships with missing endpoints |
 | `import_call_bin_prefix` | i.e., `/usr/bin/` | Prefix for the import command binary (optional)      |
 
-The `import_call_bin_prefix` is the path to your Neo4j instance that you looked up in [section Setup Neo4j](###setup-neo4j) together with the prefix `/bin`.
+The `import_call_bin_prefix` is the path to your Neo4j instance that you looked up in [section Setup Neo4j](#setup-neo4j) together with the prefix `/bin`.
 
 The default configuration that comes with BioCypher and more configuration parameters for the Settings are listed in [BioCypher Configuration Reference](https://biocypher.org/BioCypher/reference/biocypher-config/).
 

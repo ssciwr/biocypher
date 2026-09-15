@@ -5,12 +5,22 @@
 
 ## create
 ::: biocypher._create
+    options:
+      filters:
+        - "!^_"
+        - "!^BioCypherNode$"
+        - "!^BioCypherEdge$"
+        - "!^BioCypherRelAsNode$"
 
 ## deduplicate
 ::: biocypher._deduplicate
 
 ## get
 ::: biocypher._get
+    options:
+      filters:
+        - "!^_"
+        - "!^Resource$"
 
 ## graph
 ::: biocypher._graph
