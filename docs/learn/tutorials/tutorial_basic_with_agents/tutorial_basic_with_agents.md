@@ -704,7 +704,7 @@ The default configuration that comes with BioCypher and more configuration param
 !!! chat-agent "Agent"
     copilot> The adapter and schema config match:
 
-    - Nodes: The adapter yields nodes with label `"protein"` and properties matching the `proteins` section in the YAML.
+    - Nodes: The adapter yields nodes with label `"uniprot_protein"` and properties matching the `proteins` section in the YAML.
     - Edges: The adapter yields edges with labels (`binding`, `activation`, `inhibition`, `phosphorylation`, `ubiquitination`) that match the `input_label` fields in the YAML, and the properties align.
 
     Conclusion: The adapter and schema config are consistent and compatible. No changes needed.
@@ -763,7 +763,7 @@ By using the AI agent, we have created functions that read the data as a DataFra
         """
         Extract unique protein nodes from the TSV data source.
         Yields:
-            Tuples of (uniprot, 'protein', properties_dict) for each protein
+            Tuples of (uniprot, 'uniprot_protein', properties_dict) for each protein
         """
         logger.info("Extracting protein nodes from TSV data source")
         df = pd.read_csv(self.data_source, sep='\t')
@@ -782,7 +782,7 @@ By using the AI agent, we have created functions that read the data as a DataFra
                         "entity_type": entity_type
                     }
         for prot in proteins.values():
-            yield (prot["uniprot"], "protein", prot)
+            yield (prot["uniprot"], "uniprot_protein", prot)
         logger.info(f"Extracted {len(proteins)} protein nodes")
     ```
 
@@ -844,7 +844,7 @@ By using the AI agent, we have created functions that read the data as a DataFra
             """
             Extract unique protein nodes from the TSV data source.
             Yields:
-                Tuples of (uniprot, 'protein', properties_dict) for each protein
+                Tuples of (uniprot, 'uniprot_protein', properties_dict) for each protein
             """
             logger.info("Extracting protein nodes from TSV data source")
             df = pd.read_csv(self.data_source, sep='\t')
@@ -863,14 +863,14 @@ By using the AI agent, we have created functions that read the data as a DataFra
                             "entity_type": entity_type
                         }
             for prot in proteins.values():
-                yield (prot["uniprot"], "protein", prot)
+                yield (prot["uniprot"], "uniprot_protein", prot)
             logger.info(f"Extracted {len(proteins)} protein nodes")
 
         def get_edges(self):
             """
             Extract interaction edges from the TSV data source.
             Yields:
-                Tuples of (source_uniprot, target_uniprot, edge_label, edge_label, properties_dict) for each edge
+                Tuples of (None, source_uniprot, target_uniprot, edge_label, properties_dict) for each edge
             """
             logger.info("Extracting edges from TSV data source")
             import pandas as pd
@@ -888,9 +888,9 @@ By using the AI agent, we have created functions that read the data as a DataFra
                     "consensus_inhibition": bool(row["consensus_inhibition"])
                 }
                 yield (
+                    None,
                     row["source"],
                     row["target"],
-                    edge_label,
                     edge_label,
                     properties
                 )
