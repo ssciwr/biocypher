@@ -53,9 +53,15 @@ flowchart TD
 | Git                | Any                 | [Git Docs](https://git-scm.com/downloads)                          | For version control                    |
 | Neo4j              | >=1.6               | [Neo4j Desktop](https://neo4j.com/download/)                       | For querying graphs                    |
 | uv                 | >=0.7.x             | [uv Docs](https://docs.astral.sh/uv/getting-started/installation/) | For dependency management              |
-| Python             | >= 3.11             | [Python.org](https://www.python.org/downloads/)                    | Required for BioCypher                 |
+| Python             | >= 3.12             | [Python.org](https://www.python.org/downloads/)                    | Required for OntoWeaver                |
 | Jupyter (optional) | Any                 | [Jupter](https://jupyter.org/)                                     | Required for exploring the sample data |
 
+!!! warning "BioCypher version pin"
+    OntoWeaver currently pins `biocypher<0.17.0,>=0.11.0`. Installing OntoWeaver into an
+    environment that already has BioCypher >=0.17 (the version the rest of this documentation
+    targets) will downgrade BioCypher, and some behavior described elsewhere in these docs
+    (for example, the Parquet default output format) does not apply to that older version.
+    Use a dedicated environment for this tutorial until OntoWeaver's pin is relaxed.
 
 ## Setup
 
@@ -675,7 +681,7 @@ The default configuration that comes with BioCypher and more configuration param
         # Ontology configuration
         head_ontology:
             url: https://github.com/biolink/biolink-model/raw/v3.2.1/biolink-model.owl.ttl
-            root_node: entity# Map a column to an edge.
+            root_node: entity
 
     #----------------------------------------------------
     #--------        OUTPUT CONFIGURATION        --------
@@ -861,15 +867,15 @@ metadata: # Optional properties added to every node and edge.
         - map:
             column: source_genesymbol
             to_property: genesymbol
-            for_subject: protein_source
+            for_object: protein_source
         - map:
             column: ncbi_tax_id_source
             to_property: ncbi_tax_id
-            for_subject: protein_source
+            for_object: protein_source
         - map:
             column: entity_type_source
             to_property: entity_type
-            for_subject: protein_source
+            for_object: protein_source
         - map:
             column: target_genesymbol
             to_property: genesymbol
@@ -925,11 +931,27 @@ a. Look for a folder whose name starts with `biocypher-out`. Each time you run t
 
 🟥 admin import script
 
+BioCypher writes one header/data file pair per node and edge type that is actually present in
+the data. Since the mapping's `via_relation` resolves to one of `activation`, `binding`,
+`inhibition`, `phosphorylation`, `ubiquitination`, or the fallback `protein_protein_interaction`
+(see [Step 2](#step-2-create-the-mapping)), you should expect a file pair for each of these
+edge types that occurs in the dataset, not a single combined file:
+
 ```
 /biocypher-out
 └── 20250818153026
+    ├── 🟦 Activation-header.csv
+    ├── 🟦 Activation-part000.csv
+    ├── 🟦 Binding-header.csv
+    ├── 🟦 Binding-part000.csv
+    ├── 🟦 Inhibition-header.csv
+    ├── 🟦 Inhibition-part000.csv
+    ├── 🟦 Phosphorylation-header.csv
+    ├── 🟦 Phosphorylation-part000.csv
     ├── 🟦 ProteinProteinInteraction-header.csv
     ├── 🟦 ProteinProteinInteraction-part000.csv
+    ├── 🟦 Ubiquitination-header.csv
+    ├── 🟦 Ubiquitination-part000.csv
     ├── 🟥 neo4j-admin-import-call.sh
     ├── 🟨 Protein-header.csv
     ├── 🟨 Protein-part000.csv
