@@ -18,6 +18,7 @@ nav:
 
     - Learn:
           - Tutorials:
+                - Overview: learn/tutorials/index.md
                 - Agent API track:
                       - Agent API (Beginner): learn/tutorials/agent_api_guide.md
                 - Full hands-on track:
