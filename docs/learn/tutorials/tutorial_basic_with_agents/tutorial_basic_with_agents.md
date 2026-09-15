@@ -589,8 +589,9 @@ Figure 10 illustrates the Biolink Model and some of its components organized in 
     #----------------------------------------------------
     neo4j:
         database_name: neo4j
-        delimiter: '\t'
-        array_delimiter: '|'
+        csv_column_delimiter: '\t'
+        csv_array_delimiter: '|'
+        file_format: csv
         skip_duplicate_nodes: true
         skip_bad_relationships: true
         import_call_bin_prefix: <path to your Neo4j instance from Setup Neo4j section>/bin/
@@ -610,8 +611,9 @@ The second block is the Database Management System Settings, which starts with t
 
 | key                      | value             | description                                          |
 | ------------------------ | ----------------- | ---------------------------------------------------- |
-| `delimiter`              | `'\t'`            | Field delimiter for TSV import files                 |
-| `array_delimiter`        | `';'`             | Delimiter for array values                           |
+| `csv_column_delimiter`   | `'\t'`            | Field delimiter for TSV import files                 |
+| `csv_array_delimiter`    | `';'`             | Delimiter for array values                           |
+| `file_format`            | `csv`             | Output file format; BioCypher 0.17+ defaults to `parquet`, so set this explicitly for CSV output |
 | `skip_duplicate_nodes`   | `true`            | Whether to skip duplicate nodes during import        |
 | `skip_bad_relationships` | `true`            | Whether to skip relationships with missing endpoints |
 | `import_call_bin_prefix` | i.e., `/usr/bin/` | Prefix for the import command binary (optional)      |
@@ -643,8 +645,9 @@ The default configuration that comes with BioCypher and more configuration param
     #----------------------------------------------------
     neo4j:
         database_name: neo4j
-        delimiter: '\t'
-        array_delimiter: '|'
+        csv_column_delimiter: '\t'
+        csv_array_delimiter: '|'
+        file_format: csv
         skip_duplicate_nodes: true
         skip_bad_relationships: true
         import_call_bin_prefix: /home/egcarren/.config/neo4j-desktop/Application/Data/dbmss/dbms-08155706-b96e-4e74-a965-7d6d27b78db8/bin/
