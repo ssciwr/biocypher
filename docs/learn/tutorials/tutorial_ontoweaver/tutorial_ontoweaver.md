@@ -1,5 +1,6 @@
 ---
 tags:
+  - tutorial
   - beginner
 ---
 
@@ -17,7 +18,7 @@ By the end of this tutorial, you will be able to:
 - View and query the graph using Neo4j.
 
 <figure markdown="span">
-![Image title](./assets/OntoWeaver__simple-summary.png){ width="800" }
+![OntoWeaver overview: create a semantic knowledge graph from relational data using a YAML-based no-code approach](./assets/OntoWeaver__simple-summary.png){ width="800" }
 <figcaption>Use OntoWeaver to create a semantic knowledge graph from relational data using a yaml-based no-code approach.</figcaption>
 </figure>
 
@@ -118,28 +119,28 @@ In this section, we will create a Neo4j instance to use later in the tutorial. I
 1. Execute Neo4j Desktop, if this the first time you should see a window like this one.
 
     <figure markdown="span">
-    ![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_desktop_homepage.png){ width="800" }
+    ![Neo4j Desktop start screen](../tutorial_basics_neo4j_offline/assets/neo4j_desktop_homepage.png){ width="800" }
     <figcaption>Figure 1. Neo4j Desktop start screen.</figcaption>
     </figure>
 
 2. Create a new instance in Neo4j. For this tutorial, name it `neo4j-tutorial-instance` and choose a password you can remember.
 
     <figure markdown="span">
-    ![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_instance_creation.png){ width="800" }
+    ![Create Instance window in Neo4j Desktop](../tutorial_basics_neo4j_offline/assets/neo4j_instance_creation.png){ width="800" }
     <figcaption>Figure 2. Create Instance window. This may vary depending on your Neo4j version.</figcaption>
     </figure>
 
 3. Access details in the option *Overview*.
 
     <figure markdown="span">
-    ![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_overview_option.png){ width="800" }
+    ![Overview option for a Neo4j instance](../tutorial_basics_neo4j_offline/assets/neo4j_overview_option.png){ width="800" }
     <figcaption>Figure 3. *Overview* option to check details related to your Neo4j instance.</figcaption>
     </figure>
 
 4. Save the path to your Neo4j instance, we are going to use this path later in this tutorial.
 
     <figure markdown="span">
-    ![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_folder_details.png){ width="800" }
+    ![Neo4j instance with its path location highlighted](../tutorial_basics_neo4j_offline/assets/neo4j_folder_details.png){ width="800" }
     <figcaption>Figure 4. Neo4j instance with its path location highlighted.</figcaption>
     </figure>
 
@@ -219,7 +220,7 @@ For this tutorial we are going to use a [synthetic dataset](https://zenodo.org/r
 By looking at the `tsv` file, we can see that there are two columns called `source` and `target`, which represent proteins. This means that each row represents an interaction between a source protein and a target protein. For now, our graph could look like this.
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/model_graph_1.png){ width="400" }
+![Simple graph model for representing interactions between proteins](../tutorial_basics_neo4j_offline/assets/model_graph_1.png){ width="400" }
 <figcaption>Figure 5. Simple graph model for representing interactions between proteins.</figcaption>
 </figure>
 
@@ -238,7 +239,7 @@ Can we improve the graph? Absolutely! Understanding the data is essential for bu
     - `entity_type_target`
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/model_graph_2.png){ width="400" }
+![Simple protein interaction graph with properties in nodes](../tutorial_basics_neo4j_offline/assets/model_graph_2.png){ width="400" }
 <figcaption>Figure 6. Simple protein interaction graph with properties in nodes.</figcaption>
 </figure>
 
@@ -261,14 +262,14 @@ It is these protein-protein interactions that form the **edges** in the graph. H
 We are ready to model our second version of our graph. It is like follows:
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/model_graph_3.png){ width="400" }
+![Protein interaction graph showing node and edge properties](../tutorial_basics_neo4j_offline/assets/model_graph_3.png){ width="400" }
 <figcaption>Figure 7. Protein interaction graph showing node and edge properties.</figcaption>
 </figure>
 
 Finally, we can model a more detailed graph using our dataset. Rather than representing all interactions in a generic way, we can use the `type` field to show the specific type of interaction occurring between each pair of proteins.
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/model_graph_4.png){ width="550" }
+![Graph model for representing different interactions between proteins](../tutorial_basics_neo4j_offline/assets/model_graph_4.png){ width="550" }
 <figcaption>Figure 8. Graph model for representing different interactions between proteins.</figcaption>
 </figure>
 
@@ -350,7 +351,7 @@ To achieve this, we can divide the process into three sections:
 
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/biocypher_section_conf.png){ width="1000" }
+![Configuration step in the BioCypher pipeline](../tutorial_basics_neo4j_offline/assets/biocypher_section_conf.png){ width="1000" }
 <figcaption>Figure 9. Configuration step in the BioCypher pipeline.</figcaption>
 </figure>
 
@@ -370,7 +371,7 @@ The following is an example of how our schema file should look like, all of this
     protein:
         represented_as: node
         preferred_id: uniprot
-        input_label: uniprot_protein
+        input_label: protein
 
     #-------------------------------------------------------------------
     #------------------      RELATIONSHIPS (EDGES)     -----------------
@@ -406,7 +407,7 @@ The `protein` top-level key in the YAML snippet identifies our entity and connec
 | ---------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `represented_as` | `node`            | Specifies how BioCypher should represent each entity in the graph; in this case, as a node.                                                               |
 | `preferred_id`   | `uniprot`         | Defines a namespace for our proteins. In this example, all proteins follow the UniProt convention—a 5-character alphanumeric string (e.g., P00533).       |
-| `input_label`    | `uniprot_protein` | Indicates the expected label in the node tuple. All other input nodes without this label are ignored unless they are defined in the schema configuration. |
+| `input_label`    | `protein`         | Indicates the expected label in the node tuple. All other input nodes without this label are ignored unless they are defined in the schema configuration. |
 
 For more information about which other keywords you can use to configure your nodes in the schema file consult [Fields reference](https://biocypher.org/BioCypher/reference/schema-config/#fields-reference).
 
@@ -517,7 +518,7 @@ In BioCypher, ontologies are integrated through the schema configuration file. T
 Figure 10 illustrates the Biolink Model and some of its components organized in a hierarchy. Notice that entities such as *protein* (nodes) and *pairwise molecular interaction* (edges) appear both in the schema configuration and in the ontology. This alignment ensures that BioCypher graphs are not only structured consistently but also grounded in standardized biomedical concepts. For a deeper exploration of ontologies in BioCypher, see our [ontology tutorial](https://biocypher.org/BioCypher/learn/tutorials/tutorial002_handling_ontologies/).
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/biolink_ontology.png){ width="1000" }
+![The Biolink Model as an ontology backbone, showing protein as an entity and pairwise molecular interaction as an association](../tutorial_basics_neo4j_offline/assets/biolink_ontology.png){ width="1000" }
 <figcaption>Figure 10. The Biolink Model as an ontology backbone. On the right, <b>protein</b> is represented as an entity; on the left, <b>pairwise molecular interaction</b> is defined as an association. Together, these demonstrate how the schema anchors graph components to standardized biomedical concepts.</figcaption>
 </figure>
 
@@ -962,7 +963,7 @@ b. Stop the neo4j instance. You can do this on the GUI or in terminal. In termin
 <path of your Neo4j instance>/bin/neo4j stop
 ```
 
-c. Run the  `neo4j-admin-import-call.sh` script in your `biocypher-output/`. **If needed, install and activate Java 21 before running** (TODO verify this is required on Windows)**:
+c. Run the  `neo4j-admin-import-call.sh` script in your `biocypher-out/`. **If needed, install and activate Java 21 before running**:
 ```bash
 bash ./biocypher-out/20260603085652/neo4j-admin-import-call.sh
 ```
@@ -998,8 +999,18 @@ d. If everything has been successfully, you should see in terminal something sim
 
     Relationships:
       null:
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Activation-header.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Activation-part000.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Binding-header.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Binding-part000.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Inhibition-header.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Inhibition-part000.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Phosphorylation-header.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Phosphorylation-part000.csv
       /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/ProteinProteinInteraction-header.csv
       /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/ProteinProteinInteraction-part000.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Ubiquitination-header.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Ubiquitination-part000.csv
 
 
     Available resources:
@@ -1091,14 +1102,14 @@ d. If everything has been successfully, you should see in terminal something sim
 a. Connect to your instance by running Neo4j desktop again. Select your instance and click on "Connect" - the little arrow on the button allows you to expand a menu. Select the option *Query*.
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_explore_graph.png){ width="1000" }
+![Query and Explore options in a Neo4j instance](../tutorial_basics_neo4j_offline/assets/neo4j_explore_graph.png){ width="1000" }
 <figcaption>Figure 13. Query and Explore options to run on a Neo4j instance.</figcaption>
 </figure>
 
 b. Now, click on the asterisk under the Relationships category. You now should see your graph! Compare to the sketch you did previosly in this tutorial
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_final_graph.png){ width="1000" }
+![Neo4j graph built from the tutorial data](../tutorial_basics_neo4j_offline/assets/neo4j_final_graph.png){ width="1000" }
 <figcaption>Figure 14. Neo4j graph based on our data.</figcaption>
 </figure>
 
@@ -1115,7 +1126,7 @@ RETURN a, r, b;
 Result:
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_query_1.png){ width="500" }
+![Neo4j browser result for a query finding relationships between two nodes](../tutorial_basics_neo4j_offline/assets/neo4j_query_1.png){ width="500" }
 </figure>
 
 2. Find all the nodes
@@ -1127,7 +1138,7 @@ RETURN n;
 Result:
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_query_2.png){ width="500" }
+![Neo4j browser result for a query finding all nodes](../tutorial_basics_neo4j_offline/assets/neo4j_query_2.png){ width="500" }
 </figure>
 
 3. Find all nodes of a specific type(e.g. `Protein` in the following query)
@@ -1139,7 +1150,7 @@ RETURN n;
 Result:
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_query_3.png){ width="500" }
+![Neo4j browser result for a query finding all Protein nodes](../tutorial_basics_neo4j_offline/assets/neo4j_query_3.png){ width="500" }
 </figure>
 
 4. Find all relationships of a specific type(e.g. `Binding` in the following query)
@@ -1151,7 +1162,7 @@ RETURN a, r, b;
 Result:
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_query_4.png){ width="500" }
+![Neo4j browser result for a query finding all Binding relationships](../tutorial_basics_neo4j_offline/assets/neo4j_query_4.png){ width="500" }
 </figure>
 
 5. Count relationships of a given type(e.g. `Binding` in the following query)
@@ -1163,7 +1174,7 @@ RETURN COUNT(r) AS totalBindings;
 Result:
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_query_5.png){ width="250" }
+![Neo4j browser result for a query counting Binding relationships](../tutorial_basics_neo4j_offline/assets/neo4j_query_5.png){ width="250" }
 </figure>
 
 ---
