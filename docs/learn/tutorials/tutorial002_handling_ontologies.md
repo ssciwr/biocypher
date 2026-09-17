@@ -7,10 +7,10 @@ tags:
 
 # Tutorial - Handling Ontologies
 
-**Level:** Intermediate (Hands-on track)
-**Who is this for?** Users who have completed the Basics tutorial and want to understand how ontologies shape their BioCypher graphs.
-**What you will do:** Configure and inspect ontology-backed schemas, extend models with explicit and implicit inheritance, and work with synonyms and hybrid ontologies.
-**Estimated time:** 30–45 minutes.
+**Level:** Intermediate (Hands-on track)  
+**Who is this for?** Users who have completed the Basics tutorial and want to understand how ontologies shape their BioCypher graphs.  
+**What you will do:** Configure and inspect ontology-backed schemas, extend models with explicit and implicit inheritance, and work with synonyms and hybrid ontologies.  
+**Estimated time:** 30–45 minutes.  
 
 By the end of this tutorial you will be able to:
 
