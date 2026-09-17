@@ -81,6 +81,9 @@ nav:
           - Graph Class Guide: learn/explanation/graph_class_guide.md
           - Architecture Migration Guide: learn/explanation/architecture-migration.md
 
+  - HowTo:
+      - Connect the MCP to your IDE: howto/mcp.md
+
   - Reference:
       - Reference Index: reference/index.md
       - API Documentation:
