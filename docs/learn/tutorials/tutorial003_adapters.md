@@ -7,6 +7,15 @@ tags:
 
 # Tutorial - Adapters
 
+!!! warning "Legacy tutorial"
+    This tutorial is tagged `legacy`: it documents an older BioCypher workflow, is **not
+    guaranteed to work with the current BioCypher release**, and is excluded from the
+    [tutorial catalog](catalog.md). It is scheduled for review and refactoring. In the
+    meantime, see the
+    [Adapters explanation](../explanation/adapters.md) for current concepts, and the
+    [Hands-on Protein Graphs with BioCypher and Neo4j](tutorial_basics_neo4j_offline/tutorial_004_neo4j_offline.md)
+    tutorial for an up-to-date, end-to-end walkthrough that includes writing an adapter.
+
 **Level:** Intermediate (Hands-on track)  
 **Who is this for?** Users who understand the basics of BioCypher configuration and want to connect real data sources.  
 **What you will do:** Design and implement adapters that load data from external resources and feed node/edge streams into BioCypher.  
