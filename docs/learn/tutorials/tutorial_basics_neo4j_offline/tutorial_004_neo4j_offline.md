@@ -1322,16 +1322,23 @@ uv run python create_knowledge_graph.py
 
 ??? info "Terminal output:"
     ```markdown
-    INFO -- This is BioCypher v0.10.1.
-    INFO -- Logging into `biocypher-log/biocypher-20250818-153024.log`.
+    INFO -- This is BioCypher v0.17.0.
+    INFO -- Logging into `biocypher-log/biocypher-<TIMESTAMP>.log`.
     INFO -- Running BioCypher with schema configuration from config/schema_config.yaml.
+    INFO -- Creating cache directory .cache.
+    INFO -- Creating cache file .cache/cache.json.
     INFO -- Loading cache file .cache/cache.json.
-    INFO -- Use cached version from .cache/protein-protein-interaction-dataset.
+    INFO -- Asking for download of resource protein-protein-interaction-dataset.
+    Downloading data from 'https://zenodo.org/records/16902349/files/synthetic_protein_interactions.tsv' to file '.cache/protein-protein-interaction-dataset/synthetic_protein_interactions.tsv'.
     Path to the resouce: ['.cache/protein-protein-interaction-dataset/synthetic_protein_interactions.tsv']
     INFO -- Loading ontologies...
     INFO -- Instantiating OntologyAdapter class for https://github.com/biolink/biolink-model/raw/v3.2.1/biolink-model.owl.ttl.
     INFO -- Reading nodes.
-    INFO -- Creating output directory `/home/hostname/tutorial-basics-biocypher/biocypher-out/20250818153026`.
+    INFO -- Creating output directory `biocypher-out/<TIMESTAMP>`.
+    INFO -- `labels_order`=`Ascending` superseded by either `node_labels_order`=`None` or `edge_labels_order`=`None`.
+    INFO -- `node_labels_order` set to `labels_order`=`Ascending`.
+    INFO -- `edge_labels_order` set to `labels_order`=`Ascending`.
+    WARNING -- Neo4j supports only edge_labels_order: 'Leaves', I'll set it for you, but you should fix your configuration file in the `neo4j` section.
     WARNING -- Duplicate node type protein found.
     INFO -- Writing 15 entries to Protein-part000.csv
     INFO -- Generating edges.
@@ -1342,7 +1349,7 @@ uv run python create_knowledge_graph.py
     INFO -- Writing 3 entries to Phosphorylation-part000.csv
     INFO -- Writing 7 entries to Ubiquitination-part000.csv
     INFO -- Writing 2 entries to Inhibition-part000.csv
-    INFO -- Writing neo4j import call to `/home/hostname/tutorial-basics-biocypher/biocypher-out/20250818153026/neo4j-admin-import-call.sh`.
+    INFO -- Writing neo4j import call to `biocypher-out/<TIMESTAMP>/neo4j-admin-import-call.sh`.
     INFO -- Showing ontology structure based on https://github.com/biolink/biolink-model/raw/v3.2.1/biolink-model.owl.ttl
     INFO --
     entity
@@ -1365,8 +1372,8 @@ uv run python create_knowledge_graph.py
         protein
 
     INFO -- Duplicate edge types encountered (IDs in log):
-        ubiquitination
         phosphorylation
+        ubiquitination
 
     INFO -- No missing labels in input.
     ```
