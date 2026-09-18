@@ -86,7 +86,6 @@ pip install .
 You also need to install Jupyter into your environment, i.e. `pip install jupyter`, if later you want to explore the sample data in a Jupyter notebook.
 
 ### Setup Neo4j
-> **Note:**
 
 In this section, we will create a Neo4j instance to use later in the tutorial. It is important to set this up now.
 
@@ -587,6 +586,7 @@ Figure 10 illustrates the Biolink Model and some of its components organized in 
         database_name: neo4j
         csv_column_delimiter: '\t'
         csv_array_delimiter: '|'
+        file_format: csv
         skip_duplicate_nodes: true
         skip_bad_relationships: true
         import_call_bin_prefix: <path to your Neo4j instance from Setup Neo4j section>/bin/
@@ -608,11 +608,12 @@ The second block is the Database Management System Settings, which starts with t
 | ------------------------ | ----------------- | ---------------------------------------------------- |
 | `csv_column_delimiter`   | `'\t'`            | Field delimiter for TSV import files                 |
 | `csv_array_delimiter`    | `';'`             | Delimiter for array values                           |
+| `file_format`            | `csv`             | Output file format; BioCypher 0.17+ defaults to `parquet`, so set this explicitly for CSV output |
 | `skip_duplicate_nodes`   | `true`            | Whether to skip duplicate nodes during import        |
 | `skip_bad_relationships` | `true`            | Whether to skip relationships with missing endpoints |
 | `import_call_bin_prefix` | i.e., `/usr/bin/` | Prefix for the import command binary (optional)      |
 
-The `import_call_bin_prefix` is the path to your Neo4j instance that you looked up in [section Setup Neo4j](###setup-neo4j) together with the prefix `/bin`.
+The `import_call_bin_prefix` is the path to your Neo4j instance that you looked up in [section Setup Neo4j](#setup-neo4j) together with the prefix `/bin`.
 
 The default configuration that comes with BioCypher and more configuration parameters for the Settings are listed in [BioCypher Configuration Reference](https://biocypher.org/BioCypher/reference/biocypher-config/).
 
@@ -641,6 +642,7 @@ The default configuration that comes with BioCypher and more configuration param
         database_name: neo4j
         csv_column_delimiter: '\t'
         csv_array_delimiter: '|'
+        file_format: csv
         skip_duplicate_nodes: true
         skip_bad_relationships: true
         import_call_bin_prefix: /home/egcarren/.config/neo4j-desktop/Application/Data/dbmss/dbms-08155706-b96e-4e74-a965-7d6d27b78db8/bin/
@@ -1320,16 +1322,23 @@ uv run python create_knowledge_graph.py
 
 ??? info "Terminal output:"
     ```markdown
-    INFO -- This is BioCypher v0.10.1.
-    INFO -- Logging into `biocypher-log/biocypher-20250818-153024.log`.
+    INFO -- This is BioCypher v0.17.0.
+    INFO -- Logging into `biocypher-log/biocypher-<TIMESTAMP>.log`.
     INFO -- Running BioCypher with schema configuration from config/schema_config.yaml.
+    INFO -- Creating cache directory .cache.
+    INFO -- Creating cache file .cache/cache.json.
     INFO -- Loading cache file .cache/cache.json.
-    INFO -- Use cached version from .cache/protein-protein-interaction-dataset.
+    INFO -- Asking for download of resource protein-protein-interaction-dataset.
+    Downloading data from 'https://zenodo.org/records/16902349/files/synthetic_protein_interactions.tsv' to file '.cache/protein-protein-interaction-dataset/synthetic_protein_interactions.tsv'.
     Path to the resouce: ['.cache/protein-protein-interaction-dataset/synthetic_protein_interactions.tsv']
     INFO -- Loading ontologies...
     INFO -- Instantiating OntologyAdapter class for https://github.com/biolink/biolink-model/raw/v3.2.1/biolink-model.owl.ttl.
     INFO -- Reading nodes.
-    INFO -- Creating output directory `/home/hostname/tutorial-basics-biocypher/biocypher-out/20250818153026`.
+    INFO -- Creating output directory `biocypher-out/<TIMESTAMP>`.
+    INFO -- `labels_order`=`Ascending` superseded by either `node_labels_order`=`None` or `edge_labels_order`=`None`.
+    INFO -- `node_labels_order` set to `labels_order`=`Ascending`.
+    INFO -- `edge_labels_order` set to `labels_order`=`Ascending`.
+    WARNING -- Neo4j supports only edge_labels_order: 'Leaves', I'll set it for you, but you should fix your configuration file in the `neo4j` section.
     WARNING -- Duplicate node type protein found.
     INFO -- Writing 15 entries to Protein-part000.csv
     INFO -- Generating edges.
@@ -1340,7 +1349,7 @@ uv run python create_knowledge_graph.py
     INFO -- Writing 3 entries to Phosphorylation-part000.csv
     INFO -- Writing 7 entries to Ubiquitination-part000.csv
     INFO -- Writing 2 entries to Inhibition-part000.csv
-    INFO -- Writing neo4j import call to `/home/hostname/tutorial-basics-biocypher/biocypher-out/20250818153026/neo4j-admin-import-call.sh`.
+    INFO -- Writing neo4j import call to `biocypher-out/<TIMESTAMP>/neo4j-admin-import-call.sh`.
     INFO -- Showing ontology structure based on https://github.com/biolink/biolink-model/raw/v3.2.1/biolink-model.owl.ttl
     INFO --
     entity
@@ -1363,8 +1372,8 @@ uv run python create_knowledge_graph.py
         protein
 
     INFO -- Duplicate edge types encountered (IDs in log):
-        ubiquitination
         phosphorylation
+        ubiquitination
 
     INFO -- No missing labels in input.
     ```

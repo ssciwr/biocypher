@@ -19,6 +19,7 @@ theme:
     - content.code.copy
     - content.action.edit
     - navigation.tabs
+    - navigation.instant
     - navigation.footer
 
   palette:
@@ -59,7 +60,7 @@ nav:
           - Python UI track:
               - Hands-on Protein Graphs with BioCypher and Neo4j (Beginner): learn/tutorials/tutorial_basics_neo4j_offline/tutorial_004_neo4j_offline.md
               - Handling complex graph operations (Advanced): learn/tutorials/tutorial002_handling_ontologies.md
-              - Data harmonization and merging (Advanced): learn/tutorials/tutorial002_handling_ontologies.md
+              - Data harmonization and merging (Advanced, planned): learn/tutorials/tutorial_data_harmonization.md
           - LLM-assisted UI track:
               - Agent-supported hands-on Protein Graphs with BioCypher and Neo4j (Beginner): learn/tutorials/tutorial_basic_with_agents/tutorial_basic_with_agents.md
               - Agent API (Beginner): learn/tutorials/agent_api_guide.md
@@ -80,6 +81,9 @@ nav:
           - Schema Configuration Philosophy: learn/explanation/schema-config-philosophy.md
           - Graph Class Guide: learn/explanation/graph_class_guide.md
           - Architecture Migration Guide: learn/explanation/architecture-migration.md
+
+  - HowTo:
+      - Connect the MCP to your IDE: howto/mcp.md
 
   - Reference:
       - Reference Index: reference/index.md
@@ -115,8 +119,6 @@ nav:
       - Where to Start: community/contribute.md
       - Contribute to the Documentation: community/contribute-docs.md
       - Contribute to the Code Base: community/contribute-codebase.md
-
-  - API reference: api.md
 
 #=======    Extension settings (sorted alphabetically)  =====
 markdown_extensions:

@@ -1,5 +1,6 @@
 ---
 tags:
+  - tutorial
   - beginner
 ---
 # 🧑‍💻 Agent-supported hands-on Building Graphs with BioCypher (offline mode) and Neo4j
@@ -34,7 +35,7 @@ By the end of this tutorial, you will be able to:
 
 ### Setup AI agent and the BioCypher MCP
 
-As a first step, you need to install VSCode or another IDE of your choice that allows the use of an MCP. You then need to connect your IDE to a model provider like GitHub Copilot, OpenAI, Claude, or by using a local model. For example, if you are using VSCode, you can install the extension for  [GitHub Copilot](https://code.visualstudio.com/docs/copilot/overview), and add the [BioCypher MCP to the IDE](/howto/mcp).
+As a first step, you need to install VSCode or another IDE of your choice that allows the use of an MCP. You then need to connect your IDE to a model provider like GitHub Copilot, OpenAI, Claude, or by using a local model. For example, if you are using VSCode, you can install the extension for  [GitHub Copilot](https://code.visualstudio.com/docs/copilot/overview), and add the [BioCypher MCP to the IDE](../../../howto/mcp.md).
 
 To make sure that the agent and MCP are configured correctly, you can ask in the chat
 
@@ -55,7 +56,7 @@ and the agent should respond with a list of available tools, such as
 
 ### Setting up the working environment and starter repository using an AI agent
 
-In this section, you will set up your working environment and folder structure for the [BioCypher adapter](howto/adapter.md).
+In this section, you will set up your working environment and folder structure for the [BioCypher adapter](../../explanation/adapters.md).
 
 **Steps:**
 
@@ -149,34 +150,33 @@ In this section, you will set up your working environment and folder structure f
 
 ### Setup Neo4j
 
-> **Note:**
-In this section, we will create a Neo4j instance to use later in the tutorial. It is important to set this up now. For more information about Neo4j, please take a look at our [Explanations](explanation/neo4j.md).
+In this section, we will create a Neo4j instance to use later in the tutorial. It is important to set this up now. For more information about Neo4j, please take a look at our [Explanations](../../explanation/index.md).
 
 1. Execute Neo4j Desktop, if this the first time you should see a window like this one.
 
     <figure markdown="span">
-    ![Image title](./assets/neo4j_desktop_homepage.png){ width="800" }
+    ![Neo4j Desktop start screen](./assets/neo4j_desktop_homepage.png){ width="800" }
     <figcaption>Figure 1. Neo4j Desktop start screen.</figcaption>
     </figure>
 
 2. Create a new instance in Neo4j. For this tutorial, name it `neo4j-tutorial-instance` and choose a password you can remember.
 
     <figure markdown="span">
-    ![Image title](./assets/neo4j_instance_creation.png){ width="800" }
+    ![Create Instance window in Neo4j Desktop](./assets/neo4j_instance_creation.png){ width="800" }
     <figcaption>Figure 2. Create Instance window. This may vary depending on your Neo4j version.</figcaption>
     </figure>
 
 3. Access details in the option *Overview*.
 
     <figure markdown="span">
-    ![Image title](./assets/neo4j_overview_option.png){ width="800" }
+    ![Overview option for a Neo4j instance](./assets/neo4j_overview_option.png){ width="800" }
     <figcaption>Figure 3. *Overview* option to check details related to your Neo4j instance.</figcaption>
     </figure>
 
 4. Save the path to your Neo4j instance, we are going to use this path later in this tutorial.
 
     <figure markdown="span">
-    ![Image title](./assets/neo4j_folder_details.png){ width="800" }
+    ![Neo4j instance with its path location highlighted](./assets/neo4j_folder_details.png){ width="800" }
     <figcaption>Figure 4. Neo4j instance with its path location highlighted.</figcaption>
     </figure>
 
@@ -256,7 +256,7 @@ For this tutorial we are going to use a [synthetic dataset](https://zenodo.org/r
 By looking at the `tsv` file, we can see that there are two columns called `source` and `target`, which represent proteins. This means that each row represents an interaction between a source protein and a target protein. For now, our graph could look like this.
 
 <figure markdown="span">
-![Image title](./assets/model_graph_1.png){ width="400" }
+![Simple graph model for representing interactions between proteins](./assets/model_graph_1.png){ width="400" }
 <figcaption>Figure 5. Simple graph model for representing interactions between proteins.</figcaption>
 </figure>
 
@@ -275,7 +275,7 @@ Can we improve the graph? Absolutely! Understanding the data is essential for bu
     - `entity_type_target`
 
 <figure markdown="span">
-![Image title](./assets/model_graph_2.png){ width="400" }
+![Simple protein interaction graph with properties in nodes](./assets/model_graph_2.png){ width="400" }
 <figcaption>Figure 6. Simple protein interaction graph with properties in nodes.</figcaption>
 </figure>
 
@@ -298,14 +298,14 @@ It is these protein-protein interactions that form the **edges** in the graph. H
 We are ready to model our second version of our graph. It is like follows:
 
 <figure markdown="span">
-![Image title](./assets/model_graph_3.png){ width="400" }
+![Protein interaction graph showing node and edge properties](./assets/model_graph_3.png){ width="400" }
 <figcaption>Figure 7. Protein interaction graph showing node and edge properties.</figcaption>
 </figure>
 
 Finally, we can model a more detailed graph using our dataset. Rather than representing all interactions in a generic way, we can use the `type` field to show the specific type of interaction occurring between each pair of proteins.
 
 <figure markdown="span">
-![Image title](./assets/model_graph_4.png){ width="550" }
+![Graph model for representing different interactions between proteins](./assets/model_graph_4.png){ width="550" }
 <figcaption>Figure 8. Graph model for representing different interactions between proteins.</figcaption>
 </figure>
 
@@ -380,7 +380,7 @@ To achieve this, we can divide the process into five sections using the BioCyphe
 ### Step 1. get_adapter_creation_workflow for an overview and understanding of the process
 
 <figure markdown="span">
-![Image title](./assets/biocypher_section_conf.png){ width="1000" }
+![Configuration step in the BioCypher pipeline](./assets/biocypher_section_conf.png){ width="1000" }
 <figcaption>Figure 9. Configuration step in the BioCypher pipeline.</figcaption>
 </figure>
 
@@ -449,7 +449,32 @@ The agent will give you information on the file, please check that this is what 
 
 You can ask the agent to create a `yaml` schema for you. In the end it should look like this.
 
-he `protein` top-level key in the YAML snippet identifies our entity and connects it to the ontological backbone.
+```yaml
+protein:
+    represented_as: node
+    preferred_id: uniprot
+    input_label: uniprot_protein
+
+protein protein interaction:
+    is_a: pairwise molecular interaction
+    represented_as: edge
+    input_label: protein_protein_interaction
+    properties:
+        is_directed: bool
+        is_stimulation: bool
+        is_inhibition: bool
+        consensus_direction: bool
+        consensus_stimulation: bool
+        consensus_inhibition: bool
+
+activation:
+    is_a: protein protein interaction
+    inherit_properties: true
+    represented_as: edge
+    input_label: activation
+```
+
+The `protein` top-level key in the YAML snippet identifies our entity and connects it to the ontological backbone.
 
 | Key              | Value             | Description                                                                                                                                               |
 | ---------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -486,7 +511,7 @@ The `activation:` top-level key in the YAML snippet identifies our edge entity.
 | `is_a`               | `protein protein interaction` | Defines the type of entity; in this case, it is a child of the base edge we defined previously.       |
 | `inherit_properties` | `true`                        | Indicates whether all properties defined in the base edge should be inherited.                        |
 | `represented_as`     | `edge`                        | Specifies that BioCypher will treat this entity (`activation`) as an edge.                            |
-| `input_label`        | `binding`                     | Specifies the expected edge label; edges without this label are ignored unless defined in the schema. |
+| `input_label`        | `activation`                  | Specifies the expected edge label; edges without this label are ignored unless defined in the schema. |
 
 #### A comment about the connection between BioCypher and Ontologies
 
@@ -495,7 +520,7 @@ In BioCypher, ontologies are integrated through the schema configuration file. T
 Figure 10 illustrates the Biolink Model and some of its components organized in a hierarchy. Notice that entities such as *protein* (nodes) and *pairwise molecular interaction* (edges) appear both in the schema configuration and in the ontology. This alignment ensures that BioCypher graphs are not only structured consistently but also grounded in standardized biomedical concepts. For a deeper exploration of ontologies in BioCypher, see our [ontology tutorial](https://biocypher.org/BioCypher/learn/tutorials/tutorial002_handling_ontologies/).
 
 <figure markdown="span">
-![Image title](./assets/biolink_ontology.png){ width="1000" }
+![The Biolink Model as an ontology backbone, showing protein as an entity and pairwise molecular interaction as an association](./assets/biolink_ontology.png){ width="1000" }
 <figcaption>Figure 10. The Biolink Model as an ontology backbone. On the right, <b>protein</b> is represented as an entity; on the left, <b>pairwise molecular interaction</b> is defined as an association. Together, these demonstrate how the schema anchors graph components to standardized biomedical concepts.</figcaption>
 </figure>
 
@@ -589,8 +614,9 @@ Figure 10 illustrates the Biolink Model and some of its components organized in 
     #----------------------------------------------------
     neo4j:
         database_name: neo4j
-        delimiter: '\t'
-        array_delimiter: '|'
+        csv_column_delimiter: '\t'
+        csv_array_delimiter: '|'
+        file_format: csv
         skip_duplicate_nodes: true
         skip_bad_relationships: true
         import_call_bin_prefix: <path to your Neo4j instance from Setup Neo4j section>/bin/
@@ -610,13 +636,14 @@ The second block is the Database Management System Settings, which starts with t
 
 | key                      | value             | description                                          |
 | ------------------------ | ----------------- | ---------------------------------------------------- |
-| `delimiter`              | `'\t'`            | Field delimiter for TSV import files                 |
-| `array_delimiter`        | `';'`             | Delimiter for array values                           |
+| `csv_column_delimiter`   | `'\t'`            | Field delimiter for TSV import files                 |
+| `csv_array_delimiter`    | `';'`             | Delimiter for array values                           |
+| `file_format`            | `csv`             | Output file format; BioCypher 0.17+ defaults to `parquet`, so set this explicitly for CSV output |
 | `skip_duplicate_nodes`   | `true`            | Whether to skip duplicate nodes during import        |
 | `skip_bad_relationships` | `true`            | Whether to skip relationships with missing endpoints |
 | `import_call_bin_prefix` | i.e., `/usr/bin/` | Prefix for the import command binary (optional)      |
 
-The `import_call_bin_prefix` is the path to your Neo4j instance that you looked up in [section Setup Neo4j](###setup-neo4j) together with the prefix `/bin`.
+The `import_call_bin_prefix` is the path to your Neo4j instance that you looked up in [section Setup Neo4j](#setup-neo4j) together with the prefix `/bin`.
 
 The default configuration that comes with BioCypher and more configuration parameters for the Settings are listed in [BioCypher Configuration Reference](https://biocypher.org/BioCypher/reference/biocypher-config/).
 
@@ -643,8 +670,9 @@ The default configuration that comes with BioCypher and more configuration param
     #----------------------------------------------------
     neo4j:
         database_name: neo4j
-        delimiter: '\t'
-        array_delimiter: '|'
+        csv_column_delimiter: '\t'
+        csv_array_delimiter: '|'
+        file_format: csv
         skip_duplicate_nodes: true
         skip_bad_relationships: true
         import_call_bin_prefix: /home/egcarren/.config/neo4j-desktop/Application/Data/dbmss/dbms-08155706-b96e-4e74-a965-7d6d27b78db8/bin/
@@ -653,7 +681,7 @@ The default configuration that comes with BioCypher and more configuration param
 ### Step 2. Create an adapter
 
 <figure markdown="span">
-![Image title](./assets/biocypher_section_adapter.png){ width="1000" }
+![Adapter creation step in the BioCypher pipeline](./assets/biocypher_section_adapter.png){ width="1000" }
 <figcaption>Figure 11. Adapter creation in the BioCypher pipeline.</figcaption>
 </figure>
 
@@ -704,7 +732,7 @@ The default configuration that comes with BioCypher and more configuration param
 !!! chat-agent "Agent"
     copilot> The adapter and schema config match:
 
-    - Nodes: The adapter yields nodes with label `"protein"` and properties matching the `proteins` section in the YAML.
+    - Nodes: The adapter yields nodes with label `"uniprot_protein"` and properties matching the `proteins` section in the YAML.
     - Edges: The adapter yields edges with labels (`binding`, `activation`, `inhibition`, `phosphorylation`, `ubiquitination`) that match the `input_label` fields in the YAML, and the properties align.
 
     Conclusion: The adapter and schema config are consistent and compatible. No changes needed.
@@ -763,7 +791,7 @@ By using the AI agent, we have created functions that read the data as a DataFra
         """
         Extract unique protein nodes from the TSV data source.
         Yields:
-            Tuples of (uniprot, 'protein', properties_dict) for each protein
+            Tuples of (uniprot, 'uniprot_protein', properties_dict) for each protein
         """
         logger.info("Extracting protein nodes from TSV data source")
         df = pd.read_csv(self.data_source, sep='\t')
@@ -782,7 +810,7 @@ By using the AI agent, we have created functions that read the data as a DataFra
                         "entity_type": entity_type
                     }
         for prot in proteins.values():
-            yield (prot["uniprot"], "protein", prot)
+            yield (prot["uniprot"], "uniprot_protein", prot)
         logger.info(f"Extracted {len(proteins)} protein nodes")
     ```
 
@@ -844,7 +872,7 @@ By using the AI agent, we have created functions that read the data as a DataFra
             """
             Extract unique protein nodes from the TSV data source.
             Yields:
-                Tuples of (uniprot, 'protein', properties_dict) for each protein
+                Tuples of (uniprot, 'uniprot_protein', properties_dict) for each protein
             """
             logger.info("Extracting protein nodes from TSV data source")
             df = pd.read_csv(self.data_source, sep='\t')
@@ -863,14 +891,14 @@ By using the AI agent, we have created functions that read the data as a DataFra
                             "entity_type": entity_type
                         }
             for prot in proteins.values():
-                yield (prot["uniprot"], "protein", prot)
+                yield (prot["uniprot"], "uniprot_protein", prot)
             logger.info(f"Extracted {len(proteins)} protein nodes")
 
         def get_edges(self):
             """
             Extract interaction edges from the TSV data source.
             Yields:
-                Tuples of (source_uniprot, target_uniprot, edge_label, edge_label, properties_dict) for each edge
+                Tuples of (None, source_uniprot, target_uniprot, edge_label, properties_dict) for each edge
             """
             logger.info("Extracting edges from TSV data source")
             import pandas as pd
@@ -888,9 +916,9 @@ By using the AI agent, we have created functions that read the data as a DataFra
                     "consensus_inhibition": bool(row["consensus_inhibition"])
                 }
                 yield (
+                    None,
                     row["source"],
                     row["target"],
-                    edge_label,
                     edge_label,
                     properties
                 )
@@ -1025,7 +1053,7 @@ Now you can move on to importing your data into BioCypher to create a knowledge 
 ### Step 5. Create a knowledge graph script
 
 <figure markdown="span">
-![Image title](./assets/biocypher_section_script.png){ width="1000" }
+![BioCypher pipeline overview](./assets/biocypher_section_script.png){ width="1000" }
 <figcaption>Figure 12. BioCypher pipeline</figcaption>
 </figure>
 
@@ -1087,7 +1115,15 @@ Take a look at the script to understand what it does:
         bc.write_edges(adapter.get_edges())
         ```
 
-4. Print summary
+4. Export your graph to Neo4j (generation of the import script)
+
+    ??? example "**File: `create_knowledge_graph.py`**"
+        ```python
+        # Generate assets for Neo4j exportation
+        bc.write_import_call()
+        ```
+
+5. Print summary
 
     ??? example "**File: `create_knowledge_graph.py`**"
         ```python
@@ -1111,24 +1147,12 @@ Take a look at the script to understand what it does:
     This script creates a knowledge graph using BioCypher and the TutorialBasicsAdapter.
     """
 
-    import logging
-    from pathlib import Path
-
     from biocypher import BioCypher
     from tutorial_basics.adapters.tutorial_basics_adapter import TutorialBasicsAdapter
-
-    # Configure logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    logger = logging.getLogger(__name__)
 
 
     def main():
         """Main function to create the knowledge graph."""
-        logger.info("Starting tutorial-basics knowledge graph creation")
-
         # Initialize BioCypher
         bc = BioCypher(
             biocypher_config_path="config/biocypher_config.yaml",
@@ -1145,11 +1169,11 @@ Take a look at the script to understand what it does:
         )
 
         # Create the knowledge graph
-        logger.info("Creating knowledge graph...")
         bc.write_nodes(adapter.get_nodes())
         bc.write_edges(adapter.get_edges())
 
-        logger.info("Knowledge graph creation completed successfully!")
+        # Generate assets for Neo4j exportation
+        bc.write_import_call()
 
         # Create final summary
         bc.summary()
@@ -1171,19 +1195,17 @@ python create_knowledge_graph.py
 
 ??? info "Terminal output:"
     ```markdown
-    INFO -- This is BioCypher v0.10.1.
-    INFO -- Logging into `biocypher-log/biocypher-20250818-153024.log`.
+    INFO -- This is BioCypher v0.17.0.
+    INFO -- Logging into `biocypher-log/biocypher-<TIMESTAMP>.log`.
     INFO -- Running BioCypher with schema configuration from config/schema_config.yaml.
-    INFO -- Loading cache file .cache/cache.json.
-    INFO -- Use cached version from .cache/protein-protein-interaction-dataset.
-    Path to the resouce: ['.cache/protein-protein-interaction-dataset/synthetic_protein_interactions.tsv']
     INFO -- Loading ontologies...
     INFO -- Instantiating OntologyAdapter class for https://github.com/biolink/biolink-model/raw/v3.2.1/biolink-model.owl.ttl.
-    INFO -- Reading nodes.
-    INFO -- Creating output directory `/home/hostname/tutorial-basics-biocypher/biocypher-out/20250818153026`.
-    WARNING -- Duplicate node type protein found.
+    INFO -- Creating output directory `biocypher-out/<TIMESTAMP>`.
+    INFO -- `labels_order`=`Ascending` superseded by either `node_labels_order`=`None` or `edge_labels_order`=`None`.
+    INFO -- `node_labels_order` set to `labels_order`=`Ascending`.
+    INFO -- `edge_labels_order` set to `labels_order`=`Ascending`.
+    WARNING -- Neo4j supports only edge_labels_order: 'Leaves', I'll set it for you, but you should fix your configuration file in the `neo4j` section.
     INFO -- Writing 15 entries to Protein-part000.csv
-    INFO -- Generating edges.
     WARNING -- Duplicate edge type ubiquitination found.
     WARNING -- Duplicate edge type phosphorylation found.
     INFO -- Writing 3 entries to Binding-part000.csv
@@ -1191,7 +1213,7 @@ python create_knowledge_graph.py
     INFO -- Writing 3 entries to Phosphorylation-part000.csv
     INFO -- Writing 7 entries to Ubiquitination-part000.csv
     INFO -- Writing 2 entries to Inhibition-part000.csv
-    INFO -- Writing neo4j import call to `/home/hostname/tutorial-basics-biocypher/biocypher-out/20250818153026/neo4j-admin-import-call.sh`.
+    INFO -- Writing neo4j import call to `biocypher-out/<TIMESTAMP>/neo4j-admin-import-call.sh`.
     INFO -- Showing ontology structure based on https://github.com/biolink/biolink-model/raw/v3.2.1/biolink-model.owl.ttl
     INFO --
     entity
@@ -1210,9 +1232,7 @@ python create_knowledge_graph.py
             └── polypeptide
                 └── protein
 
-    INFO -- Duplicate node types encountered (IDs in log):
-        protein
-
+    INFO -- No duplicate nodes in input.
     INFO -- Duplicate edge types encountered (IDs in log):
         ubiquitination
         phosphorylation
@@ -1379,14 +1399,14 @@ d. If everything has been successfully, you should see in terminal something sim
 a. Connect to your instance by running Neo4j desktop again. Select your instance and click on "Connect" - the little arrow on the button allows you to expand a menu. Select the option *Query*.
 
 <figure markdown="span">
-![Image title](./assets/neo4j_explore_graph.png){ width="1000" }
+![Query and Explore options in a Neo4j instance](./assets/neo4j_explore_graph.png){ width="1000" }
 <figcaption>Figure 13. Query and Explore options to run on a Neo4j instance.</figcaption>
 </figure>
 
 b. Now, click on the asterisk under the Relationships category. You now should see your graph! Compare to the sketch you did previosly in this tutorial
 
 <figure markdown="span">
-![Image title](./assets/neo4j_final_graph.png){ width="1000" }
+![Neo4j graph built from the tutorial data](./assets/neo4j_final_graph.png){ width="1000" }
 <figcaption>Figure 14. Neo4j graph based on our data.</figcaption>
 </figure>
 
@@ -1403,7 +1423,7 @@ RETURN a, r, b;
 Result:
 
 <figure markdown="span">
-![Image title](./assets/neo4j_query_1.png){ width="500" }
+![Neo4j browser result for a query finding relationships between two nodes](./assets/neo4j_query_1.png){ width="500" }
 </figure>
 
 2. Find all the nodes
@@ -1415,7 +1435,7 @@ RETURN n;
 Result:
 
 <figure markdown="span">
-![Image title](./assets/neo4j_query_2.png){ width="500" }
+![Neo4j browser result for a query finding all nodes](./assets/neo4j_query_2.png){ width="500" }
 </figure>
 
 3. Find all nodes of a specific type(e.g. `Protein` in the following query)
@@ -1427,7 +1447,7 @@ RETURN n;
 Result:
 
 <figure markdown="span">
-![Image title](./assets/neo4j_query_3.png){ width="500" }
+![Neo4j browser result for a query finding all Protein nodes](./assets/neo4j_query_3.png){ width="500" }
 </figure>
 
 4. Find all relationships of a specific type(e.g. `Binding` in the following query)
@@ -1439,7 +1459,7 @@ RETURN a, r, b;
 Result:
 
 <figure markdown="span">
-![Image title](./assets/neo4j_query_4.png){ width="500" }
+![Neo4j browser result for a query finding all Binding relationships](./assets/neo4j_query_4.png){ width="500" }
 </figure>
 
 5. Count relationships of a given type(e.g. `Binding` in the following query)
@@ -1451,7 +1471,7 @@ RETURN COUNT(r) AS totalBindings;
 Result:
 
 <figure markdown="span">
-![Image title](./assets/neo4j_query_5.png){ width="250" }
+![Neo4j browser result for a query counting Binding relationships](./assets/neo4j_query_5.png){ width="250" }
 </figure>
 
 ---
@@ -1467,6 +1487,6 @@ If you found this tutorial helpful or have suggestions for improvement, please *
 
 ---
 
-| Last Update | Developed by                                            | Affiliation                                                                                                                                                                  |
-| :---------: | :------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2025.20.18  | Shuangshuang Li <br> Edwin Carreño (GH @ecarrenolozano) | [Scientific Software Center](https://www.ssc.uni-heidelberg.de/en) <br> [Saezlab](https://saezlab.org/) - [Scientific Software Center](https://www.ssc.uni-heidelberg.de/en) |
+| Last Update | Developed by                     | Affiliation                                                                 |
+| :---------: | :-------------------------------- | :--------------------------------------------------------------------------- |
+| 2026.09.17  | Inga Ulusoy (GH @iulusoy)         | [Scientific Software Center](https://www.ssc.uni-heidelberg.de/en)          |

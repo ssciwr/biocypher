@@ -1,5 +1,6 @@
 ---
 tags:
+  - tutorial
   - beginner
 ---
 
@@ -7,7 +8,7 @@ tags:
 
 ## Overview
 
-This tutorial will help you get started with OntoWeaver as a replacement for an adapter in BioCypher, thus creating knowledge graphs automatically. You will learn how to use OntoWevaer to create a simple knowledge graph with a synthetic dataset that contains information about proteins and its interactions.
+This tutorial will help you get started with OntoWeaver as a replacement for an adapter in BioCypher, thus creating knowledge graphs automatically. You will learn how to use OntoWeaver to create a simple knowledge graph with a synthetic dataset that contains information about proteins and its interactions.
 
 By the end of this tutorial, you will be able to:
 
@@ -17,7 +18,7 @@ By the end of this tutorial, you will be able to:
 - View and query the graph using Neo4j.
 
 <figure markdown="span">
-![Image title](./assets/OntoWeaver__simple-summary.png){ width="800" }
+![OntoWeaver overview: create a semantic knowledge graph from relational data using a YAML-based no-code approach](./assets/OntoWeaver__simple-summary.png){ width="800" }
 <figcaption>Use OntoWeaver to create a semantic knowledge graph from relational data using a yaml-based no-code approach.</figcaption>
 </figure>
 
@@ -53,9 +54,15 @@ flowchart TD
 | Git                | Any                 | [Git Docs](https://git-scm.com/downloads)                          | For version control                    |
 | Neo4j              | >=1.6               | [Neo4j Desktop](https://neo4j.com/download/)                       | For querying graphs                    |
 | uv                 | >=0.7.x             | [uv Docs](https://docs.astral.sh/uv/getting-started/installation/) | For dependency management              |
-| Python             | >= 3.11             | [Python.org](https://www.python.org/downloads/)                    | Required for BioCypher                 |
+| Python             | >= 3.12             | [Python.org](https://www.python.org/downloads/)                    | Required for OntoWeaver                |
 | Jupyter (optional) | Any                 | [Jupter](https://jupyter.org/)                                     | Required for exploring the sample data |
 
+!!! warning "BioCypher version pin"
+    OntoWeaver currently pins `biocypher<0.17.0,>=0.11.0`. Installing OntoWeaver into an
+    environment that already has BioCypher >=0.17 (the version the rest of this documentation
+    targets) will downgrade BioCypher, and some behavior described elsewhere in these docs
+    (for example, the Parquet default output format) does not apply to that older version.
+    Use a dedicated environment for this tutorial until OntoWeaver's pin is relaxed.
 
 ## Setup
 
@@ -106,35 +113,34 @@ In this section, you will set up your working environment.
     for a pip installation.
 
 ### Setup Neo4j
-> **Note:**
 
 In this section, we will create a Neo4j instance to use later in the tutorial. It is important to set this up now.
 
 1. Execute Neo4j Desktop, if this the first time you should see a window like this one.
 
     <figure markdown="span">
-    ![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_desktop_homepage.png){ width="800" }
+    ![Neo4j Desktop start screen](../tutorial_basics_neo4j_offline/assets/neo4j_desktop_homepage.png){ width="800" }
     <figcaption>Figure 1. Neo4j Desktop start screen.</figcaption>
     </figure>
 
 2. Create a new instance in Neo4j. For this tutorial, name it `neo4j-tutorial-instance` and choose a password you can remember.
 
     <figure markdown="span">
-    ![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_instance_creation.png){ width="800" }
+    ![Create Instance window in Neo4j Desktop](../tutorial_basics_neo4j_offline/assets/neo4j_instance_creation.png){ width="800" }
     <figcaption>Figure 2. Create Instance window. This may vary depending on your Neo4j version.</figcaption>
     </figure>
 
 3. Access details in the option *Overview*.
 
     <figure markdown="span">
-    ![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_overview_option.png){ width="800" }
+    ![Overview option for a Neo4j instance](../tutorial_basics_neo4j_offline/assets/neo4j_overview_option.png){ width="800" }
     <figcaption>Figure 3. *Overview* option to check details related to your Neo4j instance.</figcaption>
     </figure>
 
 4. Save the path to your Neo4j instance, we are going to use this path later in this tutorial.
 
     <figure markdown="span">
-    ![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_folder_details.png){ width="800" }
+    ![Neo4j instance with its path location highlighted](../tutorial_basics_neo4j_offline/assets/neo4j_folder_details.png){ width="800" }
     <figcaption>Figure 4. Neo4j instance with its path location highlighted.</figcaption>
     </figure>
 
@@ -214,7 +220,7 @@ For this tutorial we are going to use a [synthetic dataset](https://zenodo.org/r
 By looking at the `tsv` file, we can see that there are two columns called `source` and `target`, which represent proteins. This means that each row represents an interaction between a source protein and a target protein. For now, our graph could look like this.
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/model_graph_1.png){ width="400" }
+![Simple graph model for representing interactions between proteins](../tutorial_basics_neo4j_offline/assets/model_graph_1.png){ width="400" }
 <figcaption>Figure 5. Simple graph model for representing interactions between proteins.</figcaption>
 </figure>
 
@@ -233,7 +239,7 @@ Can we improve the graph? Absolutely! Understanding the data is essential for bu
     - `entity_type_target`
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/model_graph_2.png){ width="400" }
+![Simple protein interaction graph with properties in nodes](../tutorial_basics_neo4j_offline/assets/model_graph_2.png){ width="400" }
 <figcaption>Figure 6. Simple protein interaction graph with properties in nodes.</figcaption>
 </figure>
 
@@ -256,14 +262,14 @@ It is these protein-protein interactions that form the **edges** in the graph. H
 We are ready to model our second version of our graph. It is like follows:
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/model_graph_3.png){ width="400" }
+![Protein interaction graph showing node and edge properties](../tutorial_basics_neo4j_offline/assets/model_graph_3.png){ width="400" }
 <figcaption>Figure 7. Protein interaction graph showing node and edge properties.</figcaption>
 </figure>
 
 Finally, we can model a more detailed graph using our dataset. Rather than representing all interactions in a generic way, we can use the `type` field to show the specific type of interaction occurring between each pair of proteins.
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/model_graph_4.png){ width="550" }
+![Graph model for representing different interactions between proteins](../tutorial_basics_neo4j_offline/assets/model_graph_4.png){ width="550" }
 <figcaption>Figure 8. Graph model for representing different interactions between proteins.</figcaption>
 </figure>
 
@@ -333,7 +339,7 @@ To achieve this, we can divide the process into three sections:
     - [Schema configuration](#create-a-schema-for-your-graph)
     - [BioCypher configuration](#configure-biocypher-behavior)
 
-2. [Mapping](#step-2-mapping).
+2. [Mapping](#step-2-create-the-mapping).
      - Map the columns to types in the ontology
      - Process data
      - Stream processed data
@@ -345,7 +351,7 @@ To achieve this, we can divide the process into three sections:
 
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/biocypher_section_conf.png){ width="1000" }
+![Configuration step in the BioCypher pipeline](../tutorial_basics_neo4j_offline/assets/biocypher_section_conf.png){ width="1000" }
 <figcaption>Figure 9. Configuration step in the BioCypher pipeline.</figcaption>
 </figure>
 
@@ -365,7 +371,7 @@ The following is an example of how our schema file should look like, all of this
     protein:
         represented_as: node
         preferred_id: uniprot
-        input_label: uniprot_protein
+        input_label: protein
 
     #-------------------------------------------------------------------
     #------------------      RELATIONSHIPS (EDGES)     -----------------
@@ -401,7 +407,7 @@ The `protein` top-level key in the YAML snippet identifies our entity and connec
 | ---------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `represented_as` | `node`            | Specifies how BioCypher should represent each entity in the graph; in this case, as a node.                                                               |
 | `preferred_id`   | `uniprot`         | Defines a namespace for our proteins. In this example, all proteins follow the UniProt convention—a 5-character alphanumeric string (e.g., P00533).       |
-| `input_label`    | `uniprot_protein` | Indicates the expected label in the node tuple. All other input nodes without this label are ignored unless they are defined in the schema configuration. |
+| `input_label`    | `protein`         | Indicates the expected label in the node tuple. All other input nodes without this label are ignored unless they are defined in the schema configuration. |
 
 For more information about which other keywords you can use to configure your nodes in the schema file consult [Fields reference](https://biocypher.org/BioCypher/reference/schema-config/#fields-reference).
 
@@ -501,7 +507,7 @@ The `activation:` top-level key in the YAML snippet identifies our edge entity.
 | Key                  | Value                         | Description                                                                                           |
 | -------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `is_a`               | `protein protein interaction` | Defines the type of entity; in this case, it is a child of the base edge we defined previously.       |
-| `inherit_properties` | `true`                        | Indicates whether all propertuniproties defined in the base edge should be inherited.                 |
+| `inherit_properties` | `true`                        | Indicates whether all properties defined in the base edge should be inherited.                 |
 | `represented_as`     | `edge`                        | Specifies that BioCypher will treat this entity (`activation`) as an edge.                            |
 | `input_label`        | `binding`                     | Specifies the expected edge label; edges without this label are ignored unless defined in the schema. |
 
@@ -512,7 +518,7 @@ In BioCypher, ontologies are integrated through the schema configuration file. T
 Figure 10 illustrates the Biolink Model and some of its components organized in a hierarchy. Notice that entities such as *protein* (nodes) and *pairwise molecular interaction* (edges) appear both in the schema configuration and in the ontology. This alignment ensures that BioCypher graphs are not only structured consistently but also grounded in standardized biomedical concepts. For a deeper exploration of ontologies in BioCypher, see our [ontology tutorial](https://biocypher.org/BioCypher/learn/tutorials/tutorial002_handling_ontologies/).
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/biolink_ontology.png){ width="1000" }
+![The Biolink Model as an ontology backbone, showing protein as an entity and pairwise molecular interaction as an association](../tutorial_basics_neo4j_offline/assets/biolink_ontology.png){ width="1000" }
 <figcaption>Figure 10. The Biolink Model as an ontology backbone. On the right, <b>protein</b> is represented as an entity; on the left, <b>pairwise molecular interaction</b> is defined as an association. Together, these demonstrate how the schema anchors graph components to standardized biomedical concepts.</figcaption>
 </figure>
 
@@ -650,7 +656,7 @@ The second block is the Database Management System Settings, which starts with t
 | `skip_bad_relationships` | `true`            | Whether to skip relationships with missing endpoints |
 | `import_call_bin_prefix` | i.e., `/usr/bin/` | Prefix for the import command binary (optional)      |
 
-The `import_call_bin_prefix` is the path to your Neo4j instance that you looked up in [section Setup Neo4j](###setup-neo4j) together with the prefix `/bin`.
+The `import_call_bin_prefix` is the path to your Neo4j instance that you looked up in [section Setup Neo4j](#setup-neo4j) together with the prefix `/bin`.
 
 The default configuration that comes with BioCypher and more configuration parameters for the Settings are listed in [BioCypher Configuration Reference](https://biocypher.org/BioCypher/reference/biocypher-config/).
 
@@ -675,7 +681,7 @@ The default configuration that comes with BioCypher and more configuration param
         # Ontology configuration
         head_ontology:
             url: https://github.com/biolink/biolink-model/raw/v3.2.1/biolink-model.owl.ttl
-            root_node: entity# Map a column to an edge.
+            root_node: entity
 
     #----------------------------------------------------
     #--------        OUTPUT CONFIGURATION        --------
@@ -724,7 +730,7 @@ We need to create a mapping file in the `config` folder, that contains informati
       - version: "tutorial-example-ontoweaver"
     ```
 
-The first block is maps the rows and starts with `row`: This mapping explains the meaning of each row in the input table. In this case, each row of the column `source` in the tabular data is mapped to `protein`.
+The first block maps the rows and starts with `row`: This mapping explains the meaning of each row in the input table. In this case, each row of the column `source` in the tabular data is mapped to `protein`.
 
 The section `transformers` then links the other nodes to it using the described transformations.
 
@@ -861,15 +867,15 @@ metadata: # Optional properties added to every node and edge.
         - map:
             column: source_genesymbol
             to_property: genesymbol
-            for_subject: protein_source
+            for_object: protein_source
         - map:
             column: ncbi_tax_id_source
             to_property: ncbi_tax_id
-            for_subject: protein_source
+            for_object: protein_source
         - map:
             column: entity_type_source
             to_property: entity_type
-            for_subject: protein_source
+            for_object: protein_source
         - map:
             column: target_genesymbol
             to_property: genesymbol
@@ -925,11 +931,27 @@ a. Look for a folder whose name starts with `biocypher-out`. Each time you run t
 
 🟥 admin import script
 
+BioCypher writes one header/data file pair per node and edge type that is actually present in
+the data. Since the mapping's `via_relation` resolves to one of `activation`, `binding`,
+`inhibition`, `phosphorylation`, `ubiquitination`, or the fallback `protein_protein_interaction`
+(see [Step 2](#step-2-create-the-mapping)), you should expect a file pair for each of these
+edge types that occurs in the dataset, not a single combined file:
+
 ```
 /biocypher-out
 └── 20250818153026
+    ├── 🟦 Activation-header.csv
+    ├── 🟦 Activation-part000.csv
+    ├── 🟦 Binding-header.csv
+    ├── 🟦 Binding-part000.csv
+    ├── 🟦 Inhibition-header.csv
+    ├── 🟦 Inhibition-part000.csv
+    ├── 🟦 Phosphorylation-header.csv
+    ├── 🟦 Phosphorylation-part000.csv
     ├── 🟦 ProteinProteinInteraction-header.csv
     ├── 🟦 ProteinProteinInteraction-part000.csv
+    ├── 🟦 Ubiquitination-header.csv
+    ├── 🟦 Ubiquitination-part000.csv
     ├── 🟥 neo4j-admin-import-call.sh
     ├── 🟨 Protein-header.csv
     ├── 🟨 Protein-part000.csv
@@ -941,7 +963,7 @@ b. Stop the neo4j instance. You can do this on the GUI or in terminal. In termin
 <path of your Neo4j instance>/bin/neo4j stop
 ```
 
-c. Run the  `neo4j-admin-import-call.sh` script in your `biocypher-output/`. **If needed, install and activate Java 21 before running** (TODO verify this is required on Windows)**:
+c. Run the  `neo4j-admin-import-call.sh` script in your `biocypher-out/`. **If needed, install and activate Java 21 before running**:
 ```bash
 bash ./biocypher-out/20260603085652/neo4j-admin-import-call.sh
 ```
@@ -977,8 +999,18 @@ d. If everything has been successfully, you should see in terminal something sim
 
     Relationships:
       null:
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Activation-header.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Activation-part000.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Binding-header.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Binding-part000.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Inhibition-header.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Inhibition-part000.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Phosphorylation-header.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Phosphorylation-part000.csv
       /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/ProteinProteinInteraction-header.csv
       /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/ProteinProteinInteraction-part000.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Ubiquitination-header.csv
+      /home/inga/projects/biocypher/adapters/ontoweaver-adapter/biocypher-out/20260603084611/Ubiquitination-part000.csv
 
 
     Available resources:
@@ -1070,14 +1102,14 @@ d. If everything has been successfully, you should see in terminal something sim
 a. Connect to your instance by running Neo4j desktop again. Select your instance and click on "Connect" - the little arrow on the button allows you to expand a menu. Select the option *Query*.
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_explore_graph.png){ width="1000" }
+![Query and Explore options in a Neo4j instance](../tutorial_basics_neo4j_offline/assets/neo4j_explore_graph.png){ width="1000" }
 <figcaption>Figure 13. Query and Explore options to run on a Neo4j instance.</figcaption>
 </figure>
 
 b. Now, click on the asterisk under the Relationships category. You now should see your graph! Compare to the sketch you did previosly in this tutorial
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_final_graph.png){ width="1000" }
+![Neo4j graph built from the tutorial data](../tutorial_basics_neo4j_offline/assets/neo4j_final_graph.png){ width="1000" }
 <figcaption>Figure 14. Neo4j graph based on our data.</figcaption>
 </figure>
 
@@ -1094,7 +1126,7 @@ RETURN a, r, b;
 Result:
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_query_1.png){ width="500" }
+![Neo4j browser result for a query finding relationships between two nodes](../tutorial_basics_neo4j_offline/assets/neo4j_query_1.png){ width="500" }
 </figure>
 
 2. Find all the nodes
@@ -1106,7 +1138,7 @@ RETURN n;
 Result:
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_query_2.png){ width="500" }
+![Neo4j browser result for a query finding all nodes](../tutorial_basics_neo4j_offline/assets/neo4j_query_2.png){ width="500" }
 </figure>
 
 3. Find all nodes of a specific type(e.g. `Protein` in the following query)
@@ -1118,7 +1150,7 @@ RETURN n;
 Result:
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_query_3.png){ width="500" }
+![Neo4j browser result for a query finding all Protein nodes](../tutorial_basics_neo4j_offline/assets/neo4j_query_3.png){ width="500" }
 </figure>
 
 4. Find all relationships of a specific type(e.g. `Binding` in the following query)
@@ -1130,7 +1162,7 @@ RETURN a, r, b;
 Result:
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_query_4.png){ width="500" }
+![Neo4j browser result for a query finding all Binding relationships](../tutorial_basics_neo4j_offline/assets/neo4j_query_4.png){ width="500" }
 </figure>
 
 5. Count relationships of a given type(e.g. `Binding` in the following query)
@@ -1142,7 +1174,7 @@ RETURN COUNT(r) AS totalBindings;
 Result:
 
 <figure markdown="span">
-![Image title](../tutorial_basics_neo4j_offline/assets/neo4j_query_5.png){ width="250" }
+![Neo4j browser result for a query counting Binding relationships](../tutorial_basics_neo4j_offline/assets/neo4j_query_5.png){ width="250" }
 </figure>
 
 ---
