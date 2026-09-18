@@ -46,7 +46,7 @@ Choose the LLM-assisted UI track if you are comfortable with developing your dat
 
     ---
 
-    [Use BioCypher through the agentic interface](agent_api_guide.md){ .text-center }
+    [Use BioCypher through the agentic interface](tutorial_basic_with_agents/tutorial_basic_with_agents.md){ .text-center }
 
 </div>
 
