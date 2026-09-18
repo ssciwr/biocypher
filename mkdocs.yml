@@ -120,8 +120,6 @@ nav:
       - Contribute to the Documentation: community/contribute-docs.md
       - Contribute to the Code Base: community/contribute-codebase.md
 
-  - API reference: api.md
-
 #=======    Extension settings (sorted alphabetically)  =====
 markdown_extensions:
   - admonition
